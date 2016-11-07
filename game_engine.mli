@@ -16,11 +16,6 @@ module type Engine = sig
    * before starting the game loop *)
   val exchange : state -> state
 
-  (* looks at the current state for the given player/AI and returns a list of
-   * available moves. (i.e. if player has card(s) with the same suit as
-   * the first card played in a turn, those are the available cards *)
-  val get_legal_moves : state -> card list
-
   (* takes the current state and plays the current selected card *)
   val play_card : state -> state
 
