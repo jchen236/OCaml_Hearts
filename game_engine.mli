@@ -1,9 +1,28 @@
+open Player
 (* The engine intializes the game and runs the game loop *)
 module type Engine = sig
 
+  type round = {
+    turn_number : int;
+    p1_round_score : int;
+    p2_round_score : int;
+    p3_round_score : int;
+    p4_round_score : int;
+    hearts_broken : bool;
+    first_player : player;
+  }
+
   (* an up-to-date screenshot of the game at any point in time. keeps track of
    * information about the players, current hand(s), turns, and rounds  *)
-  type state
+  type state = {
+    players : player list;
+    round : round;
+    p1_total_score : int;
+    p2_total_score : int;
+    p3_total_score : int;
+    p4_total_score : int;
+    winner : player option;
+  }
 
   (* integer representation of a card *)
   type card
