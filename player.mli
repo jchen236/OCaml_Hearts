@@ -3,6 +3,15 @@ module type Player sig =
   (* returns card list for player *)
   val get_hand : unit
 
+  (* Player's total score for the game*)
+  type total_score : int
+
+  (* Player's score for the round*)
+  type round_score : int
+
+  (* Player's unique id*)
+  type player_id : string
+
   (* if a card has been played, look at the suit of the card and return
    * the list of cards that have the same suit. if there are no cards with
    * the same suit, then return the currrent hand *)
