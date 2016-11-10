@@ -14,3 +14,7 @@ val retrieve_stats : json -> (string * int)
  * stats for usage in the game. Produces a json type. If there is no json file
  * this method will also handle the creation of such file. *)
 val save_user : string -> string -> state -> json
+
+(* Using the provided information from retrieve_stats, this method will load
+ * the player's corresponding score and name into the game before it starts. *)
+val load_stats : (string * int) -> state
