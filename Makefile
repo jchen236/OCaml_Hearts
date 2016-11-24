@@ -2,8 +2,7 @@ play:
 	ocamlbuild -pkgs oUnit,yojson,str,ANSITerminal main.byte && ./main.byte
 
 check:
-	bash checkenv.sh && bash checktypes.sh
+	bash checkenv.sh
 
 clean:
 	ocamlbuild -clean
-	rm -f checktypes.ml
