@@ -1,4 +1,0 @@
-"Resource: /home/ubuntu/CS3110_FinalProject/main.ml": "\210\217l\138\207\149w\241,\194\194|\177=\233\193"
-"Rule: ocaml: cmo* -> byte (%=main )": "\214\030\199\228\252\214\129\203=.G\251Ez.y"
-"Rule: ocaml: ml -> cmo & cmi (%=main )": "\180s\015\221\136\199\221G\142\132\1897\022E\246\159"
-"Rule: ocaml dependencies ml (%=main )": "\155\ra\138\249\184\147Ty\\\224-\240J\2417"
