@@ -1,0 +1,18 @@
+{
+  "high_scores": [{
+    "#1": "Name1",
+    "points": 0,
+  }, {
+    "#2": "Name2",
+    "points": 10,
+  }, {
+    "#3": "Name3",
+    "points": 20,
+  }, {
+    "#4": "Name4",
+    "points": 30,
+  }, {
+    "#5": "Name5",
+    "points": 40,
+  }]
+}
