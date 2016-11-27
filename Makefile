@@ -1,3 +1,6 @@
+default:
+	ocamlbuild -pkg oUnit test.byte && ./test.byte
+
 play:
 	ocamlbuild -pkgs oUnit,yojson,str,ANSITerminal main.byte && ./main.byte
 
