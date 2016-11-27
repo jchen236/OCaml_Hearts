@@ -31,9 +31,10 @@ and their corresponding scores
 -[hs] is a list of hs_players*)
 let rec display_high_score hs = match hs with
   | [] -> ()
-  | h::t -> let p = hs_to_string h in print_endline p; display_high_score t;;
+  | h::t -> let p = hs_to_string h in print_endline p; display_high_score t
 
-(*[update_player_stats username win] will update an individual player's statistics
+(*[update_player_stats username win]
+  will update an individual player's statistics
   including total wins and losses, average win percentage, and best score
   -[username] name of the player to read the corresponding json file(if any)
     and write to
@@ -59,9 +60,10 @@ let update_losses losses = losses + 1
 (*[avg_win_percentage wins losses] is the player's win percentage
 -[wins] is the number of times a player has won
 -[losses] is the number of times a player has lost*)
-let avg_win_percentage wins losses = (float_of_int wins) /. (float_of_int (wins + losses))
+let avg_win_percentage wins losses =
+  (float_of_int wins) /. (float_of_int (wins + losses))
 
-(*[update_best_score score high_score] updates the player's best score
+(*[update_best_score score high_score] returns the player's new best score
 if the score he has earned after winning a game
 is lower than his previous score
 -[score] is the number of points the player received from his last game
@@ -69,11 +71,12 @@ is lower than his previous score
 let update_best_score score high_score = if score < high_score
   then score else high_score
 
+(*[update_avg_score score avg_score wins losses]
+returns the player's new average score*)
 let update_avg_score score avg_score wins losses =
   let total_games = float_of_int (wins+losses) in
   let total_points = avg_score *. total_games in
   (total_points +. (float_of_int score)) /. (total_games +. 1.0)
-  (*AVG SCORE IS A FLOAT*)
 
 let read_player_stats username =
   let json = file_name_to_json (username ^ ".json") in
@@ -85,6 +88,8 @@ let read_player_stats username =
   let avg_s = json |> member "avg_score" |> to_float in
   {name=n;wins=w;losses=l;win_percentage=win_per;best_score=bs;avg_score=avg_s}
 
+(*[display_player_stats p] prints the player's statistics
+-[p] is of type player_stats *)
 let display_player_stats p =
   print_endline ("Name: " ^ p.name);
   print_endline ("Wins: " ^ (string_of_int p.wins));
@@ -93,18 +98,40 @@ let display_player_stats p =
   print_endline ("Best Score: " ^ (string_of_int p.best_score);
   print_endline ("Average Score: " ^ (string_of_float p.avg_score)
 
+(*[is_suit s] returns a boolean if the string is a valid suit (C,D,S,H)*)
+let is_suit s =
+  match s with
+  |"C" |"D" |"S" |"H" -> true
+  | _ -> false
 
+(*[is_rank r] returns a boolean if the string is a valid rank (2-10,J,Q,K,A)*)
+let is_rank r =
+  match r with
+  |"2" |"3" |"4" |"5" |"6" |"7" |"8" |"9" |"10" |"J" |"Q" |"K" |"A" -> true
+  | _ -> false
 
+(*[is_card card] returns a boolean
+if the string is a valid representation of a card*)
+let is_card card =
+  if String.length card <> 2 && String.length card <> 3 then false
+  else
+    let suit = String.sub card 0 1 in
+    let rank =  String.sub card 1 (String.length card - 1) in
+    is_suit suit && is_rank rank
 
+(*[input_player_card player_name] returns a tuple of the [player_name]*)
+let rec input_player_card player_name =
+  let () = print_endline "Play a card:" in
+  let c = String.trim (read_line ()) in
+  let len = String.length c in
+  let card = String.sub c 0 1 ^ (String.trim (String.sub c 1 (len-1))) in
+  if is_card card then (player_name, card)
+  else (print_endline "You didn't enter a card!";input_player_card player_name)
 
-(*let extract_json_info json_tree =
-  let rooms1 = json_tree |> member "rooms" |> to_list
-                          |> List.map extract_rooms in
-  let start_room1 = extract_start_room json_tree in
-  let items1 = json_tree |> member "items" |> to_list
-                          |> List.map extract_items in
-  let start_inv1 = extract_start_inv json_tree in
-  let start_locations1 = json_tree |> member "start_locations"
-                          |> to_list |> List.map extract_start_locations in
-  {rooms=rooms1;start_room=start_room1;items=items1;
-  start_inv=start_inv1;start_locations=start_locations1}*)
+let rec get_num_human_players x =
+  let () = print_endline "How many players? (enter an int between 1-4): " in
+  try (
+    let num_players = int_of_string (String.trim (read_line ())) in
+    if (num_players >= 1 && num_players <= 4) then num_players
+    else (print_endline "Enter a valid int"; get_num_human_players x)
+    ) with |_ -> let () = print_endline "Enter a valid int" in get_num_human_players x
