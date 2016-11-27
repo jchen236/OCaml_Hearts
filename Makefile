@@ -1,4 +1,4 @@
-default:
+test:
 	ocamlbuild -pkg oUnit test.byte && ./test.byte
 
 play:
