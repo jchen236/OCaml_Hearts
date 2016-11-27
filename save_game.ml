@@ -128,10 +128,29 @@ let rec input_player_card player_name =
   if is_card card then (player_name, card)
   else (print_endline "You didn't enter a card!";input_player_card player_name)
 
-let rec get_num_human_players x =
+(*[get_names n lst] returns a list of unique names of the human players
+-[n] is an int that represents how many more people to ask for their names
+-[lst] is the list of player names*)
+let rec get_names n lst =
+  if n <= 0 then lst
+  else
+    let () = print_endline
+    "Enter your name (letters,numbers,and underscores/spaces only please):" in
+    let name = String.trim (read_line ()) in
+      if (List.mem name lst)
+      then (let () = print_endline "Please enter a different name: " in
+        get_names n lst)
+      else get_names (n-1) (name::lst)
+
+(*[get_human_players] asks how many human players there will be for the game
+and returns a list of human player names*)
+let rec get_human_players () =
   let () = print_endline "How many players? (enter an int between 1-4): " in
   try (
     let num_players = int_of_string (String.trim (read_line ())) in
-    if (num_players >= 1 && num_players <= 4) then num_players
-    else (print_endline "Enter a valid int"; get_num_human_players x)
-    ) with |_ -> let () = print_endline "Enter a valid int" in get_num_human_players x
+    if (num_players >= 1 && num_players <= 4) then get_names num_players []
+    else (print_endline "Enter a valid int"; get_human_players ())
+    ) with |_ -> let () = print_endline "Enter a valid int" in get_human_players ()
+
+
+
