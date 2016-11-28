@@ -95,8 +95,8 @@ let display_player_stats p =
   print_endline ("Wins: " ^ (string_of_int p.wins));
   print_endline ("Losses: " ^ (string_of_int p.losses));
   print_endline ("Win Percentage: " ^ (string_of_float p.win_percentage));
-  print_endline ("Best Score: " ^ (string_of_int p.best_score);
-  print_endline ("Average Score: " ^ (string_of_float p.avg_score)
+  print_endline ("Best Score: " ^ (string_of_int p.best_score));
+  print_endline ("Average Score: " ^ (string_of_float p.avg_score))
 
 (*[is_suit s] returns a boolean if the string is a valid suit (C,D,S,H)*)
 let is_suit s =
@@ -149,8 +149,33 @@ let rec get_human_players () =
   try (
     let num_players = int_of_string (String.trim (read_line ())) in
     if (num_players >= 1 && num_players <= 4) then get_names num_players []
-    else (print_endline "Enter a valid int"; get_human_players ())
-    ) with |_ -> let () = print_endline "Enter a valid int" in get_human_players ()
+    else (print_endline "Enter a valid int"; get_human_players ()))
+    with |_ -> let ()=print_endline "Enter a valid int" in get_human_players ()
+
+(*[cards_to_exchange ()] prompts the user to enter 3 cards to exchange,
+and if they are valid (they are all unique
+and are cards of a standard 52 card deck),
+returns a list of 3 strings representing valid cards*)
+let rec cards_to_exchange () =
+  let () =
+    print_endline "Pick Three Cards to Exchange: (separate cards by commas)" in
+  let input = String.trim (read_line ()) in
+  let first_comma = String.index input ',' in
+  let second_comma = String.index_from input (first_comma+1) ',' in
+  let card1 = String.sub input 0 1 ^ (String.trim
+                                      (String.sub input 1 (first_comma-1))) in
+  let card2_input = String.trim
+            (String.sub input (first_comma+1) (second_comma-first_comma-1)) in
+  let card2 = String.sub card2_input 0 1 ^
+    (String.trim (String.sub card2_input 1 (String.length card2_input - 1))) in
+  let card3_input = String.trim
+    (String.sub input (second_comma+1) (String.length input-second_comma-1)) in
+  let card3 = String.sub card3_input 0 1 ^
+  (String.trim (String.sub card3_input 1 (String.length card3_input - 1))) in
+  if (is_card card1 && is_card card2 && is_card card3 &&
+    card1 <> card2 && card2 <> card3) then [card1;card2;card3]
+  else let () = print_endline "You didn't enter valid cards" in
+  cards_to_exchange ()
 
 
 
