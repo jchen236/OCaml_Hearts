@@ -179,3 +179,33 @@ let rec cards_to_exchange () =
 
 
 
+(* representation of a card
+ * cards will be represented by
+ * 1-13 is Diamonds
+ * - 1 -> 2 of Diamonds
+ * - 13 -> Ace of Diamonds
+ * 14-26 is Clubs
+ * 27-39 is Hearts
+ * 40-52 is Spades *)
+(*[rep_card_as_string card] returns the string representation of a card.
+e.g. if card = 3, "D4" would be returned*)
+let rep_card_as_string card =
+  let suit = if card <= 13 then "D"
+              else if card <= 26 then "C"
+              else if card <= 39 then "H"
+              else "S" in
+  let num = ((card-1) mod 13) in
+  let rank = match num with
+  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 -> string_of_int (num + 2)
+  | 9 -> "J"
+  | 10 -> "Q"
+  | 11 -> "K"
+  | 12 -> "A"
+
+(*[convert_hand_to_string_list cards]
+returns a list of cards represented as strings
+-[hands] is a list of ints (representing cards) *)
+let rec convert_hand_to_string_list cards =
+  match cards with
+  | [] -> []
+  | h::t -> (rep_card_as_string h)::(convert_hand_to_string_list t)
