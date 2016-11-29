@@ -38,9 +38,45 @@ let legal_moves_test = "legal moves test" >::: [
 	"hearts, but you have no hearts" >:: (fun _ -> assert_equal [1; 2; 14; 15; 42; 41] (get_legal_moves (Some 29) true [1; 2; 14; 15; 42; 41] ));
 	"First player, !HB" >:: (fun _ -> assert_equal [1; 2; 14; 15; 42; 41] (get_legal_moves None false [1; 2; 14; 15; 27; 28; 42; 41] ));
 	"First player, HB" >:: (fun _ -> assert_equal [1; 2; 14; 15; 27; 28; 42; 41] (get_legal_moves None true [1; 2; 14; 15; 27; 28; 42; 41] ));
-	"First player, have only hearts but !HB" >:: (fun _ -> assert_equal [27; 28;] (get_legal_moves None true [27; 28] ));
+	"First player, have only hearts but !HB" >:: (fun _ -> assert_equal [27; 28] (get_legal_moves None true [27; 28] ));
 ]
 
-let tests = "test suite" >::: [points_turn_test] @ [legal_moves_test]
+let player_lst1 =  [{cards = [22; 23; 24; 25; 26]; total_score = 0; round_score = 0; player_id = "ellie"; is_AI = false; position = 0};                            
+ {cards = [1; 2; 3; 4; 5; 6; 7]; total_score = 0; round_score = 0; player_id = "bob"; is_AI = false; position = 1};
+ {cards = [8; 9; 10; 11; 12; 13; 14; 15]; total_score = 0; round_score = 0; player_id = "charlie"; is_AI = false; position = 2};
+ {cards = [16; 17; 18; 19; 20; 21]; total_score = 0; round_score = 0; player_id = "drake"; is_AI = false; position = 3}]
+ let exchange1 = [("bob", [1; 2; 3]); ("charlie", [8; 9; 10]); ("drake", [16; 17; 18]); ("ellie", [22; 23; 24])]
+ let result1 = exchange_cards player_lst1 exchange1 player_lst1
+let exchange_test = "exchanging cards test" >::: [
+ 	"ellie's cards" >:: (fun _ -> assert_equal [25; 26; 16; 17; 18] (List.hd result1).cards);
+	"ellie's total score" >:: (fun _ -> assert_equal 0 (List.hd result1).total_score);
+	"ellie's round score" >:: (fun _ -> assert_equal 0 (List.hd result1).round_score);
+	"ellie's id" >:: (fun _ -> assert_equal "ellie" (List.hd result1).player_id);
+	"ellie is_AI" >:: (fun _ -> assert_equal false (List.hd result1).is_AI);
+	"ellie's position" >:: (fun _ -> assert_equal 0 (List.hd result1).position);
+
+	"bob's cards" >:: (fun _ -> assert_equal [4; 5; 6; 7; 22; 23; 24] (List.nth result1 1).cards);
+	"bob's total score" >:: (fun _ -> assert_equal 0 (List.nth result1 1).total_score);
+	"bob's round score" >:: (fun _ -> assert_equal 0 (List.nth result1 1).round_score);
+	"bob's id" >:: (fun _ -> assert_equal "bob" (List.nth result1 1).player_id);
+	"bob is_AI" >:: (fun _ -> assert_equal false (List.nth result1 1).is_AI);
+	"bob's position" >:: (fun _ -> assert_equal 1 (List.nth result1 1).position); 
+
+	"charlie's cards" >:: (fun _ -> assert_equal [11; 12; 13; 14; 15; 1; 2; 3] (List.nth result1 2).cards);
+	"charlie's total score" >:: (fun _ -> assert_equal 0 (List.nth result1 2).total_score);
+	"charlie's round score" >:: (fun _ -> assert_equal 0 (List.nth result1 2).round_score);
+	"charlie's id" >:: (fun _ -> assert_equal "charlie" (List.nth result1 2).player_id);
+	"charlie is_AI" >:: (fun _ -> assert_equal false (List.nth result1 2).is_AI);
+	"charlie's position" >:: (fun _ -> assert_equal 2 (List.nth result1 2).position); 
+
+	"drake's cards" >:: (fun _ -> assert_equal [19; 20; 21; 8; 9; 10] (List.nth result1 3).cards);
+	"drake's total score" >:: (fun _ -> assert_equal 0 (List.nth result1 3).total_score);
+	"drake's round score" >:: (fun _ -> assert_equal 0 (List.nth result1 3).round_score);
+	"drake's id" >:: (fun _ -> assert_equal "drake" (List.nth result1 3).player_id);
+	"drake is_AI" >:: (fun _ -> assert_equal false (List.nth result1 3).is_AI);
+	"drake's position" >:: (fun _ -> assert_equal 3 (List.nth result1 3).position); 
+]
+
+let tests = "test suite" >::: points_turn_test :: legal_moves_test :: exchange_test :: []
 
 let _ = run_test_tt_main tests
