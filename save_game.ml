@@ -23,7 +23,7 @@ let extract_high_scores =
   json |> member "high_scores" |> to_list |> List.map extract_hs_player_info
 
 (*[hs_to_string p] converts a player [p] to a string*)
-let hs_to_string p =
+let hs_to_string (p:hs_player) =
   p.name ^ ": " ^ (string_of_int p.score)
 
 (*[display_high_score hs] prints out the leaderboard containing the players
@@ -97,6 +97,25 @@ let display_player_stats p =
   print_endline ("Win Percentage: " ^ (string_of_float p.win_percentage));
   print_endline ("Best Score: " ^ (string_of_int p.best_score));
   print_endline ("Average Score: " ^ (string_of_float p.avg_score))
+
+(*`Assoc [("name", `String "DEFAULT"); ("wins", `Int 0); ("losses", `Int 0); ("best_score", `Int 100); ("avg_score", `Int 0)]*)
+
+(*[create_new_json_file username] creates a new json file for a new player*)
+let create_new_json_file username =
+  let stats:Yojson.Basic.json = `Assoc [("name", `String username); ("wins", `Int 0);
+      ("losses", `Int 0); ("average_win_percentage", `Float 0.0); ("best_score", `Int 100); ("avg_score", `Float 0.0)] in
+  Yojson.Basic.to_file (username ^ ".json") stats
+
+let update_existing_json username won score =
+  let p = read_player_stats username in
+  let wins = if won then p.wins + 1 else p.wins in
+  let losses = if not won then p.losses + 1 else p.losses in
+  let win_percent = avg_win_percentage wins losses in
+  let bs = update_best_score score p.best_score in
+  let a_score = update_avg_score score p.avg_score wins losses in
+  let new_stats:Yojson.Basic.json = `Assoc [("name", `String username); ("wins", `Int wins);
+      ("losses", `Int losses); ("average_win_percentage", `Float win_percent); ("best_score", `Int bs); ("avg_score", `Float a_score)] in
+  Yojson.Basic.to_file (username ^ ".json") new_stats
 
 (*[is_suit s] returns a boolean if the string is a valid suit (C,D,S,H)*)
 let is_suit s =
@@ -177,8 +196,6 @@ let rec cards_to_exchange () =
   else let () = print_endline "You didn't enter valid cards" in
   cards_to_exchange ()
 
-
-
 (* representation of a card
  * cards will be represented by
  * 1-13 is Diamonds
@@ -195,16 +212,16 @@ let rep_card_as_string card =
               else if card <= 39 then "H"
               else "S" in
   let num = ((card-1) mod 13) in
-  let rank = match num with
+  let rank = (match num with
   | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 -> string_of_int (num + 2)
   | 9 -> "J"
   | 10 -> "Q"
   | 11 -> "K"
-  | 12 -> "A"
+  | 12 -> "A") in (suit ^ rank)
 
 (*[convert_hand_to_string_list cards]
 returns a list of cards represented as strings
--[hands] is a list of ints (representing cards) *)
+-[cards] is a "hand" containing a list of ints (representing cards) *)
 let rec convert_hand_to_string_list cards =
   match cards with
   | [] -> []
