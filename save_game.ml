@@ -78,6 +78,8 @@ let update_avg_score score avg_score wins losses =
   let total_points = avg_score *. total_games in
   (total_points +. (float_of_int score)) /. (total_games +. 1.0)
 
+(*[read_player_stats username] returns a record of type player_stats
+from a json_file*)
 let read_player_stats username =
   let json = file_name_to_json (username ^ ".json") in
   let n = json |> member "name" |> to_string in
@@ -100,19 +102,32 @@ let display_player_stats p =
 
 (*[create_new_json_file username] creates a new json file for a new player*)
 let create_new_json_file username =
-  let stats:Yojson.Basic.json = `Assoc [("name", `String username); ("wins", `Int 0);
-      ("losses", `Int 0); ("win_percentage", `Float 0.0); ("best_score", `Int 100); ("avg_score", `Float 0.0)] in
+  let stats:Yojson.Basic.json = `Assoc [("name", `String username);
+  ("wins", `Int 0);("losses", `Int 0); ("win_percentage", `Float 0.0);
+  ("best_score", `Int 100); ("avg_score", `Float 0.0)] in
   Yojson.Basic.to_file (username ^ ".json") stats
 
+(*[reset_existing_json username] resets the existing json file
+for [username] to the initial stats*)
+let reset_existing_json username =
+  create_new_json_file username
+
+(*update_existing_json username won score] updates an existing json
+that stores an individual player's statistics
+-[username] is a string of the player's name
+-[won] is a boolean whether or not the player won the most recent game
+-[score] is the player's most recent game's score*)
 let update_existing_json username won score =
   let p = read_player_stats username in
   let wins = if won then p.wins + 1 else p.wins in
   let losses = if not won then p.losses + 1 else p.losses in
   let win_percent = avg_win_percentage wins losses in
   let bs = update_best_score score p.best_score in
-  let a_score = update_avg_score score p.avg_score wins losses in
-  let new_stats:Yojson.Basic.json = `Assoc [("name", `String username); ("wins", `Int wins);
-      ("losses", `Int losses); ("average_win_percentage", `Float win_percent); ("best_score", `Int bs); ("avg_score", `Float a_score)] in
+  let a_score = update_avg_score score p.avg_score p.wins p.losses in
+  let new_stats:Yojson.Basic.json = `Assoc [("name", `String username);
+  ("wins", `Int wins);("losses", `Int losses);
+  ("win_percentage", `Float win_percent); ("best_score", `Int bs);
+  ("avg_score", `Float a_score)] in
   Yojson.Basic.to_file (username ^ ".json") new_stats
 
 (*[is_suit s] returns a boolean if the string is a valid suit (C,D,S,H)*)
@@ -224,6 +239,3 @@ let rec convert_hand_to_string_list cards =
   match cards with
   | [] -> []
   | h::t -> (rep_card_as_string h)::(convert_hand_to_string_list t)
-
-
-(*rechecking git issues*)
