@@ -226,3 +226,6 @@ let rec convert_hand_to_string_list cards =
   match cards with
   | [] -> []
   | h::t -> (rep_card_as_string h)::(convert_hand_to_string_list t)
+
+
+(*checking git issues*)
