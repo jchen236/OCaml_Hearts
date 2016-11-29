@@ -98,12 +98,10 @@ let display_player_stats p =
   print_endline ("Best Score: " ^ (string_of_int p.best_score));
   print_endline ("Average Score: " ^ (string_of_float p.avg_score))
 
-(*`Assoc [("name", `String "DEFAULT"); ("wins", `Int 0); ("losses", `Int 0); ("best_score", `Int 100); ("avg_score", `Int 0)]*)
-
 (*[create_new_json_file username] creates a new json file for a new player*)
 let create_new_json_file username =
   let stats:Yojson.Basic.json = `Assoc [("name", `String username); ("wins", `Int 0);
-      ("losses", `Int 0); ("average_win_percentage", `Float 0.0); ("best_score", `Int 100); ("avg_score", `Float 0.0)] in
+      ("losses", `Int 0); ("win_percentage", `Float 0.0); ("best_score", `Int 100); ("avg_score", `Float 0.0)] in
   Yojson.Basic.to_file (username ^ ".json") stats
 
 let update_existing_json username won score =
