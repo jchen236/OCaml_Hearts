@@ -78,17 +78,30 @@ let update_avg_score score avg_score wins losses =
   let total_points = avg_score *. total_games in
   (total_points +. (float_of_int score)) /. (total_games +. 1.0)
 
+(*[reset_existing_json username] resets the existing json file
+for [username] to the initial stats*)
+let reset_existing_json username =
+  create_new_json_file username
+
+(*[create_new_json_file username] creates a new json file for a new player*)
+let create_new_json_file username =
+  let stats:Yojson.Basic.json = `Assoc [("name", `String username);
+  ("wins", `Int 0);("losses", `Int 0); ("win_percentage", `Float 0.0);
+  ("best_score", `Int 100); ("avg_score", `Float 0.0)] in
+  Yojson.Basic.to_file (username ^ ".json") stats
+
 (*[read_player_stats username] returns a record of type player_stats
 from a json_file*)
-let read_player_stats username =
-  let json = file_name_to_json (username ^ ".json") in
+let rec read_player_stats username =
+  try(let json = file_name_to_json (username ^ ".json") in
   let n = json |> member "name" |> to_string in
   let w = json |> member "wins" |> to_int in
   let l = json |> member "losses" |> to_int in
   let win_per = json |> member "win_percentage" |> to_float in
   let bs = json |> member "best_score" |> to_int in
   let avg_s = json |> member "avg_score" |> to_float in
-  {name=n;wins=w;losses=l;win_percentage=win_per;best_score=bs;avg_score=avg_s}
+  {name=n;wins=w;losses=l;win_percentage=win_per;best_score=bs;avg_score=avg_s})
+  with | Sys_error _ -> create_new_json_file username;read_player_stats username
 
 (*[display_player_stats p] prints the player's statistics
 -[p] is of type player_stats *)
@@ -99,18 +112,6 @@ let display_player_stats p =
   print_endline ("Win Percentage: " ^ (string_of_float p.win_percentage));
   print_endline ("Best Score: " ^ (string_of_int p.best_score));
   print_endline ("Average Score: " ^ (string_of_float p.avg_score))
-
-(*[create_new_json_file username] creates a new json file for a new player*)
-let create_new_json_file username =
-  let stats:Yojson.Basic.json = `Assoc [("name", `String username);
-  ("wins", `Int 0);("losses", `Int 0); ("win_percentage", `Float 0.0);
-  ("best_score", `Int 100); ("avg_score", `Float 0.0)] in
-  Yojson.Basic.to_file (username ^ ".json") stats
-
-(*[reset_existing_json username] resets the existing json file
-for [username] to the initial stats*)
-let reset_existing_json username =
-  create_new_json_file username
 
 (*update_existing_json username won score] updates an existing json
 that stores an individual player's statistics
