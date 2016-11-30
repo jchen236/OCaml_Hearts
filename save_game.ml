@@ -23,7 +23,7 @@ let extract_high_scores =
   json |> member "high_scores" |> to_list |> List.map extract_hs_player_info
 
 (*[hs_to_string p] converts a player [p] to a string*)
-let hs_to_string p =
+let hs_to_string (p:hs_player) =
   p.name ^ ": " ^ (string_of_int p.score)
 
 (*[display_high_score hs] prints out the leaderboard containing the players
@@ -78,15 +78,30 @@ let update_avg_score score avg_score wins losses =
   let total_points = avg_score *. total_games in
   (total_points +. (float_of_int score)) /. (total_games +. 1.0)
 
-let read_player_stats username =
-  let json = file_name_to_json (username ^ ".json") in
+(*[reset_existing_json username] resets the existing json file
+for [username] to the initial stats*)
+let reset_existing_json username =
+  create_new_json_file username
+
+(*[create_new_json_file username] creates a new json file for a new player*)
+let create_new_json_file username =
+  let stats:Yojson.Basic.json = `Assoc [("name", `String username);
+  ("wins", `Int 0);("losses", `Int 0); ("win_percentage", `Float 0.0);
+  ("best_score", `Int 100); ("avg_score", `Float 0.0)] in
+  Yojson.Basic.to_file (username ^ ".json") stats
+
+(*[read_player_stats username] returns a record of type player_stats
+from a json_file*)
+let rec read_player_stats username =
+  try(let json = file_name_to_json (username ^ ".json") in
   let n = json |> member "name" |> to_string in
   let w = json |> member "wins" |> to_int in
   let l = json |> member "losses" |> to_int in
   let win_per = json |> member "win_percentage" |> to_float in
   let bs = json |> member "best_score" |> to_int in
   let avg_s = json |> member "avg_score" |> to_float in
-  {name=n;wins=w;losses=l;win_percentage=win_per;best_score=bs;avg_score=avg_s}
+  {name=n;wins=w;losses=l;win_percentage=win_per;best_score=bs;avg_score=avg_s})
+  with | Sys_error _ -> create_new_json_file username;read_player_stats username
 
 (*[display_player_stats p] prints the player's statistics
 -[p] is of type player_stats *)
@@ -97,6 +112,24 @@ let display_player_stats p =
   print_endline ("Win Percentage: " ^ (string_of_float p.win_percentage));
   print_endline ("Best Score: " ^ (string_of_int p.best_score));
   print_endline ("Average Score: " ^ (string_of_float p.avg_score))
+
+(*update_existing_json username won score] updates an existing json
+that stores an individual player's statistics
+-[username] is a string of the player's name
+-[won] is a boolean whether or not the player won the most recent game
+-[score] is the player's most recent game's score*)
+let update_existing_json username won score =
+  let p = read_player_stats username in
+  let wins = if won then p.wins + 1 else p.wins in
+  let losses = if not won then p.losses + 1 else p.losses in
+  let win_percent = avg_win_percentage wins losses in
+  let bs = update_best_score score p.best_score in
+  let a_score = update_avg_score score p.avg_score p.wins p.losses in
+  let new_stats:Yojson.Basic.json = `Assoc [("name", `String username);
+  ("wins", `Int wins);("losses", `Int losses);
+  ("win_percentage", `Float win_percent); ("best_score", `Int bs);
+  ("avg_score", `Float a_score)] in
+  Yojson.Basic.to_file (username ^ ".json") new_stats
 
 (*[is_suit s] returns a boolean if the string is a valid suit (C,D,S,H)*)
 let is_suit s =
@@ -177,5 +210,75 @@ let rec cards_to_exchange () =
   else let () = print_endline "You didn't enter valid cards" in
   cards_to_exchange ()
 
+(* representation of a card
+ * cards will be represented by
+ * 1-13 is Diamonds
+ * - 1 -> 2 of Diamonds
+ * - 13 -> Ace of Diamonds
+ * 14-26 is Clubs
+ * 27-39 is Hearts
+ * 40-52 is Spades *)
+(*[rep_card_as_string card] returns the string representation of a card.
+e.g. if card = 3, "D4" would be returned*)
+let rep_card_as_string card =
+  let suit = if card <= 13 then "D"
+              else if card <= 26 then "C"
+              else if card <= 39 then "H"
+              else "S" in
+  let num = ((card-1) mod 13) in
+  let rank = (match num with
+  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 -> string_of_int (num + 2)
+  | 9 -> "J"
+  | 10 -> "Q"
+  | 11 -> "K"
+  | 12 -> "A") in (suit ^ rank)
+
+(*[convert_hand_to_string_list cards]
+returns a list of cards represented as strings
+-[cards] is a "hand" containing a list of ints (representing cards) *)
+let rec convert_hand_to_string_list cards =
+  match cards with
+  | [] -> []
+  | h::t -> (rep_card_as_string h)::(convert_hand_to_string_list t)
+
+(*[rank_repr_as_int rank] takes in a string [rank] and
+returns its corresponding int value as represented in the deck*)
+let rank_repr_as_int rank =
+  match rank with
+  |"2" |"3" |"4" |"5" |"6" |"7" |"8" |"9" |"10" -> (int_of_string rank - 1)
+  |"J" -> 10
+  |"Q" -> 11
+  |"K" -> 12
+  |"A" -> 13
+
+(*[convert_string_card_to_int card] returns an int represenation
+of a card's string representation*)
+let convert_string_card_to_int card =
+  let rank = rank_repr_as_int (String.sub card 1 1) in
+  match (String.sub card 0 1) with
+  |"D" -> rank
+  |"C" -> rank + 13
+  |"H" -> rank + 26
+  |"S" -> rank + 39
+
+(*[done_with_turn username] prints a bunch of hearts to block the
+previous player's hand from sight from the next player*)
+let rec done_with_turn username =
+  let () = print_endline ("Enter DONE to signal end of turn, " ^ username) in
+  let input = read_line () in
+  if (String.trim (String.uppercase_ascii input)) = "DONE" then
+    let rec heart_string str num =
+      (if num = 0 then str
+      else heart_string (str ^ " <3") (num-1)) in
+    print_endline (heart_string "" 10000)
+  else done_with_turn username
+
+(*[ready_to_play username] returns true once the player whose turn it is
+says he is ready to play*)
+let rec ready_to_play username =
+  let () = print_endline ("Enter READY to signal ready to play, " ^ username) in
+  let input = read_line () in
+  if (String.trim (String.uppercase_ascii input)) = "READY" then true
+  else ready_to_play username
 
 

@@ -2,7 +2,6 @@
   "name": "DEFAULT",
   "wins": 0,
   "losses":0,
-  "win_percentage": 0.0,
   "best_score":100,
-  "avg_score":0.0,
+  "avg_score":0
 }
