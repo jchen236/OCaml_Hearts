@@ -240,3 +240,45 @@ let rec convert_hand_to_string_list cards =
   match cards with
   | [] -> []
   | h::t -> (rep_card_as_string h)::(convert_hand_to_string_list t)
+
+(*[rank_repr_as_int rank] takes in a string [rank] and
+returns its corresponding int value as represented in the deck*)
+let rank_repr_as_int rank =
+  match rank with
+  |"2" |"3" |"4" |"5" |"6" |"7" |"8" |"9" |"10" -> (int_of_string rank - 1)
+  |"J" -> 10
+  |"Q" -> 11
+  |"K" -> 12
+  |"A" -> 13
+
+(*[convert_string_card_to_int card] returns an int represenation
+of a card's string representation*)
+let convert_string_card_to_int card =
+  let rank = rank_repr_as_int (String.sub card 1 1) in
+  match (String.sub card 0 1) with
+  |"D" -> rank
+  |"C" -> rank + 13
+  |"H" -> rank + 26
+  |"S" -> rank + 39
+
+(*[done_with_turn username] prints a bunch of hearts to block the
+previous player's hand from sight from the next player*)
+let rec done_with_turn username =
+  let () = print_endline ("Enter DONE to signal end of turn, " ^ username) in
+  let input = read_line () in
+  if (String.trim (String.uppercase_ascii input)) = "DONE" then
+    let rec heart_string str num =
+      (if num = 0 then str
+      else heart_string (str ^ " <3") (num-1)) in
+    print_endline (heart_string "" 10000)
+  else done_with_turn username
+
+(*[ready_to_play username] returns true once the player whose turn it is
+says he is ready to play*)
+let rec ready_to_play username =
+  let () = print_endline ("Enter READY to signal ready to play, " ^ username) in
+  let input = read_line () in
+  if (String.trim (String.uppercase_ascii input)) = "READY" then true
+  else ready_to_play username
+
+
