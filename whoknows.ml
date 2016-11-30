@@ -1,3 +1,4 @@
+
 (*CARD REPRESENTATION*)
 
 (* representation of a card
@@ -12,6 +13,15 @@
  type card = int
  type hand = card list 
  type player_id = string
+
+  type player = {
+    cards : hand;
+    total_score: int;
+    round_score: int;
+    player_id: string;
+    is_AI: bool;
+    position: int;
+  }
 
 (* Calculates the bounds for the suit of this card. The bounds are inclusive*)
 let suit_bounds c : (int * int)= 
@@ -29,10 +39,19 @@ let is_same_suit (c1:card) (c2:card) =
 	let upperbound = snd (suit_bounds c1) in
 	(c2 >= lowerbound && c2 <= upperbound)
 
-
 (* Returns a hand that only contains cards of the same suit as c*)
 let only_suit (c: card) (card_lst: hand) : card list = 
 	List.filter( fun x -> is_same_suit c x) card_lst
+
+(* Returns the string representation of a card the user inputs to an int
+    e.g. C10 (10 of Clubs) = 23 *)
+let string_to_int_card (str: string) : int =
+	match (String.get str 0) with
+	| 'D' -> int_of_string (String.sub str 1 (String.length str - 1))
+	| 'C' -> int_of_string (String.sub str 1 (String.length str - 1)) + 13
+	| 'H' -> int_of_string (String.sub str 1 (String.length str - 1)) + 26
+	| 'S' -> int_of_string (String.sub str 1 (String.length str - 1)) + 39
+	| _ -> failwith "invalid string card entered"
 
 let point_of_card (c:card) = 
 	if c >=27 && c <=39 then 1
@@ -50,7 +69,7 @@ let max_play (play1: (player_id * card)) (play2: (player_id * card)) =
 	if snd play1 > snd play2 then play1 else play2
 
 (* Given a list of plays of the same suit, return the player that won the turn*)
-let winner_of_turn (plays: (player_id * card) list) (curr_winner: (player_id * card)) : player = 
+let rec winner_of_turn (plays: (player_id * card) list) (curr_winner: (player_id * card)) : player_id = 
 	match plays with
 	| [] -> fst curr_winner
 	| h::t -> winner_of_turn t (max_play h curr_winner)
@@ -92,15 +111,6 @@ let calculate_turn_result (plays: (player_id * card) list) : (player_id * int) =
 
 let (ai_names: player_id list)= ["Professor Clarkson"; "Professor Oak"; "Professor Constable"; "Professor George"]
 
- type player = {
-    cards : hand;
-    total_score: int;
-    round_score: int;
-    player_id: string;
-    is_AI: bool;
-    position: int;
-  }
-
 (*Creates a record for a human player*)
 let initialize_human_players acc (player_name:player_id) = 
 	let new_player = 
@@ -129,8 +139,6 @@ let rec partial_lst lst (n:int) acc=
 	| [] -> List.rev acc
 	| h::t -> if n = 0 then List.rev acc 
 else partial_lst t (n-1) (h::acc)
-
-
 
 (*Splits lst into two lists, the first of which is length n*)
 let split_lst lst n = 
@@ -189,7 +197,7 @@ let rec distribute_hands (players: player list) (hand_list : hand list) (acc: pl
 			is_AI = h.is_AI;
 			position = n;
 			}
-		in distribute_hands t others (new_player::acc) n+1
+		in distribute_hands t others (new_player::acc) (n+1)
 	)
 
 (*Call this method*)
@@ -202,7 +210,7 @@ let initialize_all_players (player_id_lst: player_id list) (ai_lst:player_id lis
 	let ai_lst = List.fold_left initialize_ai [] ais in
 	let players_and_ais = player_id_lst@ai_lst in 
 	let shuffled_deck = initialize_deck () in
-	let four_hands = distribute_deck shuffled_deck in hh 
+	let four_hands = distribute_deck shuffled_deck in 
 	distribute_hands players_and_ais four_hands [] 0
 
 (* Position 0 will give cards to position 1
@@ -220,6 +228,8 @@ let initialize_all_players (player_id_lst: player_id list) (ai_lst:player_id lis
  		if h.position = position then h
  	else find_player position tl 
 
+let sort_player_list_by_pos (player_lst: player list) : player list =
+	List.sort (fun player1 player2 -> Pervasives.compare player1.position player2.position) player_lst 
 
 let remove_card_from_hand (p_cards: card list) (c: card) = 
 	List.filter (fun x -> x <> c) p_cards 
@@ -298,7 +308,76 @@ let rec exchange_cards (player_lst: player list ) (exchanges: (player_id * card 
 	| h::tl -> 
 	exchange_cards tl exchanges (single_exchange h res exchanges)
 
-let play_card (p:player) (c:card) = 
-	if List.mem c get_legal_moves
+(* let play_card (p:player) (c:card) = 
+	if List.mem c get_legal_moves *)
+
+
+
+
+(*[is_suit s] returns a boolean if the string is a valid suit (C,D,S,H)*)
+let is_suit s =
+  match s with
+  |"C" |"D" |"S" |"H" -> true
+  | _ -> false
+
+(*[is_rank r] returns a boolean if the string is a valid rank (2-10,J,Q,K,A)*)
+let is_rank r =
+  match r with
+  |"2" |"3" |"4" |"5" |"6" |"7" |"8" |"9" |"10" |"J" |"Q" |"K" |"A" -> true
+  | _ -> false
+
+(*[is_card card] returns a boolean
+if the string is a valid representation of a card*)
+let is_card card =
+  if String.length card <> 2 && String.length card <> 3 then false
+  else
+    let suit = String.sub card 0 1 in
+    let rank =  String.sub card 1 (String.length card - 1) in
+    is_suit suit && is_rank rank
+
+(*[input_player_card player_name] returns a tuple of the [player_name]*)
+let rec input_player_card (player_name: string) : (player_id * string) =
+  let () = print_endline "Play a card:" in
+  let c = String.trim (read_line ()) in
+  let len = String.length c in
+  let card = String.sub c 0 1 ^ (String.trim (String.sub c 1 (len-1))) in
+  if is_card card then (player_name, card)
+  else (print_endline "You didn't enter a card!";input_player_card player_name)
+
+
+(* Plays out a turn. It takes in a list of players and goes through each one asking for
+	them to input a card. It checks to see if the card the player plays is in his/her hand
+	and is a valid move. 
+*)
+let play_turn (player_lst: player list) =
+	let turn_cards = [] in
+	let temp_hearts_broken = true in
+
+	let rec get_move player = 
+		let string_card = snd (input_player_card player.player_id) in
+		Printf.printf "string_card %s\n" string_card;
+		let card = string_to_int_card string_card in
+		Printf.printf "card %i\n" card;
+		let legal_moves = get_legal_moves (get_first_play turn_cards) temp_hearts_broken player.cards in				
+		Printf.printf "legal moves: ";
+		let rec helper lst = 
+		(match lst with
+		| [] -> ()
+		| h::t -> Printf.printf "%i, " h; helper t)
+		in
+		helper legal_moves
+		;
+
+		Printf.printf "\nList.mem: %B\n" (List.mem card legal_moves);
+		if (List.mem card legal_moves) then card else begin print_endline ("You don't have this card or this is an invalid play"); get_move player end 
+	 in
+
+	let rec helper lst =
+		match lst with
+		| [] -> []
+		| h::t -> [get_move h] @ helper t
+	in
+
+helper (List.rev (sort_player_list_by_pos player_lst))
 
 
