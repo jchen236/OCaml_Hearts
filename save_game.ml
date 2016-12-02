@@ -18,7 +18,7 @@ let extract_hs_player_info json =
   {name=player1;score=score1}
 
 (*[extract_high_scores] returns a list of players with the top 5 scores*)
-let extract_high_scores =
+let extract_high_scores () =
   let json = file_name_to_json "high_score.json" in
   json |> member "high_scores" |> to_list |> List.map extract_hs_player_info
 
@@ -26,12 +26,18 @@ let extract_high_scores =
 let hs_to_string (p:hs_player) =
   p.name ^ ": " ^ (string_of_int p.score)
 
-(*[display_high_score hs] prints out the leaderboard containing the players
+(*[display_high_score_helper hs] prints out the leaderboard containing the players
 and their corresponding scores
 -[hs] is a list of hs_players*)
-let rec display_high_score hs = match hs with
+let rec display_high_score_helper hs = match hs with
   | [] -> ()
-  | h::t -> let p = hs_to_string h in print_endline p; display_high_score t
+  | h::t -> let p = hs_to_string h in
+    print_endline p; display_high_score_helper t
+
+(*[display_high_score] calls display_high_score_helper
+  to print out the leaderboard info from "high_score.json"*)
+let display_high_score () =
+  display_high_score_helper (extract_high_scores ())
 
 (*[update_player_stats username win]
   will update an individual player's statistics
@@ -103,9 +109,10 @@ let rec read_player_stats username =
   {name=n;wins=w;losses=l;win_percentage=win_per;best_score=bs;avg_score=avg_s})
   with | Sys_error _ -> create_new_json_file username;read_player_stats username
 
-(*[display_player_stats p] prints the player's statistics
--[p] is of type player_stats *)
-let display_player_stats p =
+(*[display_player_stats username] prints the player's statistics
+-[username] is the player's username *)
+let display_player_stats_helper username =
+  let p = read_player_stats username in
   print_endline ("Name: " ^ p.name);
   print_endline ("Wins: " ^ (string_of_int p.wins));
   print_endline ("Losses: " ^ (string_of_int p.losses));
@@ -231,7 +238,9 @@ let rep_card_as_string card =
   | 9 -> "J"
   | 10 -> "Q"
   | 11 -> "K"
-  | 12 -> "A") in (suit ^ rank)
+  | 12 -> "A"
+  | _ -> failwith "Invalid card representation") in (suit ^ rank)
+
 
 (*[convert_hand_to_string_list cards]
 returns a list of cards represented as strings
