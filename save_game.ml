@@ -78,17 +78,17 @@ let update_avg_score score avg_score wins losses =
   let total_points = avg_score *. total_games in
   (total_points +. (float_of_int score)) /. (total_games +. 1.0)
 
-(*[reset_existing_json username] resets the existing json file
-for [username] to the initial stats*)
-let reset_existing_json username =
-  create_new_json_file username
-
 (*[create_new_json_file username] creates a new json file for a new player*)
 let create_new_json_file username =
   let stats:Yojson.Basic.json = `Assoc [("name", `String username);
   ("wins", `Int 0);("losses", `Int 0); ("win_percentage", `Float 0.0);
   ("best_score", `Int 100); ("avg_score", `Float 0.0)] in
   Yojson.Basic.to_file (username ^ ".json") stats
+
+(*[reset_existing_json username] resets the existing json file
+for [username] to the initial stats*)
+let reset_existing_json username =
+  create_new_json_file username
 
 (*[read_player_stats username] returns a record of type player_stats
 from a json_file*)
@@ -250,16 +250,18 @@ let rank_repr_as_int rank =
   |"Q" -> 11
   |"K" -> 12
   |"A" -> 13
+  |_ -> failwith "bad rank"
 
 (*[convert_string_card_to_int card] returns an int represenation
 of a card's string representation*)
 let convert_string_card_to_int card =
-  let rank = rank_repr_as_int (String.sub card 1 1) in
+  let rank = rank_repr_as_int (String.sub card 1 (String.length card - 1)) in
   match (String.sub card 0 1) with
   |"D" -> rank
   |"C" -> rank + 13
   |"H" -> rank + 26
   |"S" -> rank + 39
+  | _ -> failwith "Not a valid card"
 
 (*[done_with_turn username] prints a bunch of hearts to block the
 previous player's hand from sight from the next player*)
