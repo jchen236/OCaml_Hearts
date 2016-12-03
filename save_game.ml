@@ -18,7 +18,7 @@ let extract_hs_player_info json =
   {name=player1;score=score1}
 
 (*[extract_high_scores] returns a list of players with the top 5 scores*)
-let extract_high_scores =
+let extract_high_scores () =
   let json = file_name_to_json "high_score.json" in
   json |> member "high_scores" |> to_list |> List.map extract_hs_player_info
 
@@ -26,12 +26,18 @@ let extract_high_scores =
 let hs_to_string (p:hs_player) =
   p.name ^ ": " ^ (string_of_int p.score)
 
-(*[display_high_score hs] prints out the leaderboard containing the players
+(*[display_high_score_helper hs] prints out the leaderboard containing the players
 and their corresponding scores
 -[hs] is a list of hs_players*)
-let rec display_high_score hs = match hs with
+let rec display_high_score_helper hs = match hs with
   | [] -> ()
-  | h::t -> let p = hs_to_string h in print_endline p; display_high_score t
+  | h::t -> let p = hs_to_string h in
+    print_endline p; display_high_score_helper t
+
+(*[display_high_score] calls display_high_score_helper
+  to print out the leaderboard info from "high_score.json"*)
+let display_high_score () =
+  display_high_score_helper (extract_high_scores ())
 
 (*[update_player_stats username win]
   will update an individual player's statistics
@@ -78,17 +84,17 @@ let update_avg_score score avg_score wins losses =
   let total_points = avg_score *. total_games in
   (total_points +. (float_of_int score)) /. (total_games +. 1.0)
 
-(*[reset_existing_json username] resets the existing json file
-for [username] to the initial stats*)
-let reset_existing_json username =
-  create_new_json_file username
-
 (*[create_new_json_file username] creates a new json file for a new player*)
 let create_new_json_file username =
   let stats:Yojson.Basic.json = `Assoc [("name", `String username);
   ("wins", `Int 0);("losses", `Int 0); ("win_percentage", `Float 0.0);
   ("best_score", `Int 100); ("avg_score", `Float 0.0)] in
   Yojson.Basic.to_file (username ^ ".json") stats
+
+(*[reset_existing_json username] resets the existing json file
+for [username] to the initial stats*)
+let reset_existing_json username =
+  create_new_json_file username
 
 (*[read_player_stats username] returns a record of type player_stats
 from a json_file*)
@@ -103,9 +109,10 @@ let rec read_player_stats username =
   {name=n;wins=w;losses=l;win_percentage=win_per;best_score=bs;avg_score=avg_s})
   with | Sys_error _ -> create_new_json_file username;read_player_stats username
 
-(*[display_player_stats p] prints the player's statistics
--[p] is of type player_stats *)
-let display_player_stats p =
+(*[display_player_stats username] prints the player's statistics
+-[username] is the player's username *)
+let display_player_stats_helper username =
+  let p = read_player_stats username in
   print_endline ("Name: " ^ p.name);
   print_endline ("Wins: " ^ (string_of_int p.wins));
   print_endline ("Losses: " ^ (string_of_int p.losses));
@@ -231,7 +238,9 @@ let rep_card_as_string card =
   | 9 -> "J"
   | 10 -> "Q"
   | 11 -> "K"
-  | 12 -> "A") in (suit ^ rank)
+  | 12 -> "A"
+  | _ -> failwith "Invalid card representation") in (suit ^ rank)
+
 
 (*[convert_hand_to_string_list cards]
 returns a list of cards represented as strings
@@ -250,16 +259,18 @@ let rank_repr_as_int rank =
   |"Q" -> 11
   |"K" -> 12
   |"A" -> 13
+  |_ -> failwith "bad rank"
 
 (*[convert_string_card_to_int card] returns an int represenation
 of a card's string representation*)
 let convert_string_card_to_int card =
-  let rank = rank_repr_as_int (String.sub card 1 1) in
+  let rank = rank_repr_as_int (String.sub card 1 (String.length card - 1)) in
   match (String.sub card 0 1) with
   |"D" -> rank
   |"C" -> rank + 13
   |"H" -> rank + 26
   |"S" -> rank + 39
+  | _ -> failwith "Not a valid card"
 
 (*[done_with_turn username] prints a bunch of hearts to block the
 previous player's hand from sight from the next player*)
