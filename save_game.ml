@@ -227,10 +227,11 @@ player_name and the int representation of the card being played*)
 let rec input_player_card player_name =
   let () = print_endline "Play a card:" in
   let c = String.trim (read_line ()) in
-  let len = String.length c in
-  let card = String.sub c 0 1 ^ (String.trim (String.sub c 1 (len-1))) in
-  if is_card card then (player_name, (convert_string_card_to_int card))
-  else (print_endline "You didn't enter a card!";input_player_card player_name)
+  if (String.uppercase_ascii c = "HELP") then (print_help (); input_player_card player_name) else
+  (let len = String.length c in
+    let card = String.sub c 0 1 ^ (String.trim (String.sub c 1 (len-1))) in
+    if is_card card then (player_name, (convert_string_card_to_int card))
+    else (print_endline "You didn't enter a card!";input_player_card player_name))
 
 (*[get_names n lst] returns a list of unique names of the human players
 -[n] is an int that represents how many more people to ask for their names
@@ -241,19 +242,21 @@ let rec get_names n lst =
     let () = print_endline
     "Enter your name (letters,numbers,and underscores/spaces only please):" in
     let name = String.trim (read_line ()) in
-      if (List.mem name lst)
-      then (let () = print_endline "Please enter a different name: " in
-        get_names n lst)
-      else get_names (n-1) (name::lst)
+      if (String.uppercase_ascii name) = "HELP" then  (print_help ();get_names n lst) else
+      (if (List.mem name lst)
+            then (let () = print_endline "Please enter a different name: " in
+              get_names n lst)
+            else get_names (n-1) (name::lst))
 
 (*[get_human_players] asks how many human players there will be for the game
 and returns a list of human player names*)
 let rec get_human_players () =
   let () = print_endline "How many players? (enter an int between 1-4): " in
-  try (
-    let num_players = int_of_string (String.trim (read_line ())) in
+  try (let input = String.trim (read_line ()) in
+    if (String.uppercase_ascii input = "HELP") then (print_help ();get_human_players ()) else
+    (let num_players = int_of_string input in
     if (num_players >= 1 && num_players <= 4) then get_names num_players []
-    else (print_endline "Enter a valid int"; get_human_players ()))
+    else (print_endline "Enter a valid int"; get_human_players ())))
     with |_ -> let ()=print_endline "Enter a valid int" in get_human_players ()
 
 (*[cards_to_exchange ()] prompts the user to enter 3 cards to exchange,
@@ -264,7 +267,7 @@ let rec cards_to_exchange () =
   try(let () =
     print_endline "Pick Three Cards to Exchange: (separate cards by commas)" in
   let input = String.trim (read_line ()) in
-  if input = "HELP" then (print_help (); cards_to_exchange ()) else
+  if (String.uppercase_ascii input) = "HELP" then (print_help (); cards_to_exchange ()) else
   (let first_comma = String.index input ',' in
     let second_comma = String.index_from input (first_comma+1) ',' in
     let card1 = String.sub input 0 1 ^ (String.trim
@@ -302,7 +305,7 @@ let rec ready_to_play username =
   let () = print_endline ("Enter READY to signal ready to play, " ^ username) in
   let input = String.trim (String.uppercase_ascii (read_line ())) in
   if input = "READY" then true
-  else if input = "HELP" then  (print_help; ready_to_play username)
+  else if input = "HELP" then  (print_help (); ready_to_play username)
   else ready_to_play username
 
 
