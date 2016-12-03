@@ -22,23 +22,23 @@ let points_turn_test = [
 ]
 
 let legal_moves_test = [
-	"all spades, hearts not broken" >:: (fun _ -> assert_equal [42; 41] (get_legal_moves (Some 40) false [1; 14; 27; 42; 41] ));
-	"all diamonds, hearts not broken" >:: (fun _ -> assert_equal [1; 2] (get_legal_moves (Some 3) false [1; 2; 14; 27; 42; 41] ));
-	"all clubs, hearts not broken" >:: (fun _ -> assert_equal [14; 15] (get_legal_moves (Some 16) false [1; 2; 14; 15; 27; 42; 41] ));
-	"all spades, HB" >:: (fun _ -> assert_equal [42; 41] (get_legal_moves (Some 40) true [1; 14; 27; 42; 41] ));
-	"all diamonds, HB" >:: (fun _ -> assert_equal [1; 2] (get_legal_moves (Some 3) true [1; 2; 14; 27; 42; 41] ));
-	"all clubs, HB" >:: (fun _ -> assert_equal [14; 15] (get_legal_moves (Some 16) true [1; 2; 14; 15; 27; 42; 41] ));
-	"all hearts" >:: (fun _ -> assert_equal [27; 28] (get_legal_moves (Some 29) true [1; 2; 14; 15; 27; 28; 42; 41] ));
-	"spades, but you have no spades" >:: (fun _ -> assert_equal [1; 14; 27] (get_legal_moves (Some 40) true [1; 14; 27] ));
-	"spades, but you have no spades HB" >:: (fun _ -> assert_equal [1; 14; 27] (get_legal_moves (Some 40) false [1; 14; 27] ));
-	"diamonds, but you have no diamonds" >:: (fun _ -> assert_equal [14; 15; 27; 28; 42; 41] (get_legal_moves (Some 3) false [14; 15; 27; 28; 42; 41] ));
-	"diamonds, but you have no diamonds HB" >:: (fun _ -> assert_equal [14; 15; 27; 28; 42; 41] (get_legal_moves (Some 3) true [14; 15; 27; 28; 42; 41] ));
-	"clubs, but you have no clubs" >:: (fun _ -> assert_equal [1; 2; 27; 28; 42; 41] (get_legal_moves (Some 16) false [1; 2; 27; 28; 42; 41] ));
-	"clubs, but you have no clubs HB" >:: (fun _ -> assert_equal [1; 2; 27; 28; 42; 41] (get_legal_moves (Some 16) true [1; 2; 27; 28; 42; 41] ));
-	"hearts, but you have no hearts" >:: (fun _ -> assert_equal [1; 2; 14; 15; 42; 41] (get_legal_moves (Some 29) true [1; 2; 14; 15; 42; 41] ));
-	"First player, !HB" >:: (fun _ -> assert_equal [1; 2; 14; 15; 42; 41] (get_legal_moves None false [1; 2; 14; 15; 27; 28; 42; 41] ));
-	"First player, HB" >:: (fun _ -> assert_equal [1; 2; 14; 15; 27; 28; 42; 41] (get_legal_moves None true [1; 2; 14; 15; 27; 28; 42; 41] ));
-	"First player, have only hearts but !HB" >:: (fun _ -> assert_equal [27; 28] (get_legal_moves None true [27; 28] ));
+	"all spades, hearts not broken" >:: (fun _ -> assert_equal [42; 41] (get_legal_moves (Some 40) [1; 14; 27; 42; 41] ));
+	"all diamonds, hearts not broken" >:: (fun _ -> assert_equal [1; 2] (get_legal_moves (Some 3) [1; 2; 14; 27; 42; 41] ));
+	"all clubs, hearts not broken" >:: (fun _ -> assert_equal [14; 15] (get_legal_moves (Some 16) [1; 2; 14; 15; 27; 42; 41] ));
+	"all spades, HB" >:: (fun _ -> assert_equal [42; 41] (get_legal_moves (Some 40) [1; 14; 27; 42; 41] ));
+	"all diamonds, HB" >:: (fun _ -> assert_equal [1; 2] (get_legal_moves (Some 3) [1; 2; 14; 27; 42; 41] ));
+	"all clubs, HB" >:: (fun _ -> assert_equal [14; 15] (get_legal_moves (Some 16) [1; 2; 14; 15; 27; 42; 41] ));
+	"all hearts" >:: (fun _ -> assert_equal [27; 28] (get_legal_moves (Some 29) [1; 2; 14; 15; 27; 28; 42; 41] ));
+	"spades, but you have no spades" >:: (fun _ -> assert_equal [1; 14; 27] (get_legal_moves (Some 40) [1; 14; 27] ));
+	"spades, but you have no spades HB" >:: (fun _ -> assert_equal [1; 14; 27] (get_legal_moves (Some 40) [1; 14; 27] ));
+	"diamonds, but you have no diamonds" >:: (fun _ -> assert_equal [14; 15; 27; 28; 42; 41] (get_legal_moves (Some 3) [14; 15; 27; 28; 42; 41] ));
+	"diamonds, but you have no diamonds HB" >:: (fun _ -> assert_equal [14; 15; 27; 28; 42; 41] (get_legal_moves (Some 3) [14; 15; 27; 28; 42; 41] ));
+	"clubs, but you have no clubs" >:: (fun _ -> assert_equal [1; 2; 27; 28; 42; 41] (get_legal_moves (Some 16) [1; 2; 27; 28; 42; 41] ));
+	"clubs, but you have no clubs HB" >:: (fun _ -> assert_equal [1; 2; 27; 28; 42; 41] (get_legal_moves (Some 16) [1; 2; 27; 28; 42; 41] ));
+	"hearts, but you have no hearts" >:: (fun _ -> assert_equal [1; 2; 14; 15; 42; 41] (get_legal_moves (Some 29) [1; 2; 14; 15; 42; 41] ));
+	"First player, !HB" >:: (fun _ -> assert_equal [1; 2; 14; 15; 42; 41] (get_legal_moves None [1; 2; 14; 15; 27; 28; 42; 41] ));
+	"First player, HB" >:: (fun _ -> assert_equal [1; 2; 14; 15; 27; 28; 42; 41] (get_legal_moves None [1; 2; 14; 15; 27; 28; 42; 41] ));
+	"First player, have only hearts but !HB" >:: (fun _ -> assert_equal [27; 28] (get_legal_moves None [27; 28] ));
 ]
 
 let player_lst1 =  [
@@ -120,28 +120,29 @@ let exchange_test = [
 (* play ellie: C2342, C-4, C2, C1, C10   Bob: C1, D3   Charlie: D10, C3     Drake: C5    *)
 (* let turn_cards1 = List.sort (fun card1 card2 -> Pervasives.compare card1 card2) (play_turn player_lst1) 
  *)
-(* let player_lst3 =  [
+let player_lst3 =  [
 	 {cards = [22; 23; 24; 25; 26]; total_score = 0; round_score = 0; player_id = "ellie"; is_AI = false; position = 0};                            
 	 {cards = [1; 2; 3; 4; 5; 6; 7]; total_score = 0; round_score = 0; player_id = "bob"; is_AI = false; position = 1};
 	 {cards = [8; 9; 10; 11; 12; 13; 14; 15]; total_score = 0; round_score = 0; player_id = "charlie"; is_AI = false; position = 2};
 	 {cards = [16; 17; 18; 19; 20; 35]; total_score = 0; round_score = 0; player_id = "drake"; is_AI = false; position = 3}]
 (* !HB ~ play ellie:  C10   Bob: D3   Charlie: C3     Drake: H10, C5    *)
-let turn_cards2 = List.sort (fun card1 card2 -> Pervasives.compare card1 card2) (play_turn player_lst3) 
+(* let turn_cards2 = List.sort (fun card1 card2 -> Pervasives.compare card1 card2) (play_turn player_lst3) 
  *)
 let player_lst4 =  [
 	 {cards = [22; 23; 24; 25; 26]; total_score = 0; round_score = 0; player_id = "ellie"; is_AI = false; position = 0};                            
 	 {cards = [1; 2; 3; 4; 5; 6; 7]; total_score = 0; round_score = 0; player_id = "bob"; is_AI = false; position = 1};
 	 {cards = [8; 9; 10; 11; 12; 13; 14; 15]; total_score = 0; round_score = 0; player_id = "charlie"; is_AI = false; position = 2};
 	 {cards = [35]; total_score = 0; round_score = 0; player_id = "drake"; is_AI = false; position = 3}]
-let turn_cards3 = List.sort (fun card1 card2 -> Pervasives.compare card1 card2) (play_turn player_lst4) 
-
+(* let turn_cards3 = List.sort (fun card1 card2 -> Pervasives.compare card1 card2) (play_turn player_lst4) 
+ *)
 let turn_test = [
 	(* "turn1" >:: (fun _ -> assert_equal [1; 14; 20; 22] turn_cards1);  *)
 	(* "turn1B" >:: (fun _ -> assert_equal [2; 15; 17; 22] turn_cards1);  *)
 	(* "turn2A" >:: (fun _ -> assert_equal [2; 15; 17; 22] turn_cards2);  *)
-	"turn3A" >:: (fun _ -> assert_equal [2; 15; 22; 35] turn_cards3); 
+	(* "turn3A" >:: (fun _ -> assert_equal [2; 15; 22; 35] turn_cards3);  *)
+	"HB" >:: (fun _ -> assert_equal true (!hearts_broken));
 ]
 
-let tests = "test suite" >::: points_turn_test @ legal_moves_test @ turn_test
+let tests = "test suite" >::: points_turn_test @ legal_moves_test
 
 let _ = run_test_tt_main tests
