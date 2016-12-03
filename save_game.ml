@@ -159,64 +159,6 @@ let is_card card =
     let rank =  String.sub card 1 (String.length card - 1) in
     is_suit suit && is_rank rank
 
-(*[input_player_card player_name] returns a tuple of the [player_name]*)
-let rec input_player_card player_name =
-  let () = print_endline "Play a card:" in
-  let c = String.trim (read_line ()) in
-  let len = String.length c in
-  let card = String.sub c 0 1 ^ (String.trim (String.sub c 1 (len-1))) in
-  if is_card card then (player_name, card)
-  else (print_endline "You didn't enter a card!";input_player_card player_name)
-
-(*[get_names n lst] returns a list of unique names of the human players
--[n] is an int that represents how many more people to ask for their names
--[lst] is the list of player names*)
-let rec get_names n lst =
-  if n <= 0 then lst
-  else
-    let () = print_endline
-    "Enter your name (letters,numbers,and underscores/spaces only please):" in
-    let name = String.trim (read_line ()) in
-      if (List.mem name lst)
-      then (let () = print_endline "Please enter a different name: " in
-        get_names n lst)
-      else get_names (n-1) (name::lst)
-
-(*[get_human_players] asks how many human players there will be for the game
-and returns a list of human player names*)
-let rec get_human_players () =
-  let () = print_endline "How many players? (enter an int between 1-4): " in
-  try (
-    let num_players = int_of_string (String.trim (read_line ())) in
-    if (num_players >= 1 && num_players <= 4) then get_names num_players []
-    else (print_endline "Enter a valid int"; get_human_players ()))
-    with |_ -> let ()=print_endline "Enter a valid int" in get_human_players ()
-
-(*[cards_to_exchange ()] prompts the user to enter 3 cards to exchange,
-and if they are valid (they are all unique
-and are cards of a standard 52 card deck),
-returns a list of 3 strings representing valid cards*)
-let rec cards_to_exchange () =
-  let () =
-    print_endline "Pick Three Cards to Exchange: (separate cards by commas)" in
-  let input = String.trim (read_line ()) in
-  let first_comma = String.index input ',' in
-  let second_comma = String.index_from input (first_comma+1) ',' in
-  let card1 = String.sub input 0 1 ^ (String.trim
-                                      (String.sub input 1 (first_comma-1))) in
-  let card2_input = String.trim
-            (String.sub input (first_comma+1) (second_comma-first_comma-1)) in
-  let card2 = String.sub card2_input 0 1 ^
-    (String.trim (String.sub card2_input 1 (String.length card2_input - 1))) in
-  let card3_input = String.trim
-    (String.sub input (second_comma+1) (String.length input-second_comma-1)) in
-  let card3 = String.sub card3_input 0 1 ^
-  (String.trim (String.sub card3_input 1 (String.length card3_input - 1))) in
-  if (is_card card1 && is_card card2 && is_card card3 &&
-    card1 <> card2 && card2 <> card3) then [card1;card2;card3]
-  else let () = print_endline "You didn't enter valid cards" in
-  cards_to_exchange ()
-
 (* representation of a card
  * cards will be represented by
  * 1-13 is Diamonds
@@ -272,6 +214,76 @@ let convert_string_card_to_int card =
   |"S" -> rank + 39
   | _ -> failwith "Not a valid card"
 
+(*[print_help] prints out the instructions for the game*)
+let print_help () =
+  let output = "\n\nInstructions:\nTo learn how to play Hearts,\nplease go to "
+^ "www.bicyclecards.com/how-to-play/hearts/\nIn our game, to enter a card,
+type the first letter of the card's suit (C,D,S,H)\n"^
+"followed by a space and then the rank (2-10, J, Q, K, A)\n\n" in
+  ANSITerminal.(print_string [red] output)
+
+(*[input_player_card player_name] returns a tuple of the [player_name] with
+player_name and the int representation of the card being played*)
+let rec input_player_card player_name =
+  let () = print_endline "Play a card:" in
+  let c = String.trim (read_line ()) in
+  let len = String.length c in
+  let card = String.sub c 0 1 ^ (String.trim (String.sub c 1 (len-1))) in
+  if is_card card then (player_name, (convert_string_card_to_int card))
+  else (print_endline "You didn't enter a card!";input_player_card player_name)
+
+(*[get_names n lst] returns a list of unique names of the human players
+-[n] is an int that represents how many more people to ask for their names
+-[lst] is the list of player names*)
+let rec get_names n lst =
+  if n <= 0 then lst
+  else
+    let () = print_endline
+    "Enter your name (letters,numbers,and underscores/spaces only please):" in
+    let name = String.trim (read_line ()) in
+      if (List.mem name lst)
+      then (let () = print_endline "Please enter a different name: " in
+        get_names n lst)
+      else get_names (n-1) (name::lst)
+
+(*[get_human_players] asks how many human players there will be for the game
+and returns a list of human player names*)
+let rec get_human_players () =
+  let () = print_endline "How many players? (enter an int between 1-4): " in
+  try (
+    let num_players = int_of_string (String.trim (read_line ())) in
+    if (num_players >= 1 && num_players <= 4) then get_names num_players []
+    else (print_endline "Enter a valid int"; get_human_players ()))
+    with |_ -> let ()=print_endline "Enter a valid int" in get_human_players ()
+
+(*[cards_to_exchange ()] prompts the user to enter 3 cards to exchange,
+and if they are valid (they are all unique
+and are cards of a standard 52 card deck),
+returns a list of 3 card ints representing valid cards*)
+let rec cards_to_exchange () =
+  try(let () =
+    print_endline "Pick Three Cards to Exchange: (separate cards by commas)" in
+  let input = String.trim (read_line ()) in
+  if input = "HELP" then (print_help (); cards_to_exchange ()) else
+  (let first_comma = String.index input ',' in
+    let second_comma = String.index_from input (first_comma+1) ',' in
+    let card1 = String.sub input 0 1 ^ (String.trim
+                                        (String.sub input 1 (first_comma-1))) in
+    let card2_input = String.trim
+              (String.sub input (first_comma+1) (second_comma-first_comma-1)) in
+    let card2 = String.sub card2_input 0 1 ^
+      (String.trim (String.sub card2_input 1 (String.length card2_input - 1))) in
+    let card3_input = String.trim
+      (String.sub input (second_comma+1) (String.length input-second_comma-1)) in
+    let card3 = String.sub card3_input 0 1 ^
+    (String.trim (String.sub card3_input 1 (String.length card3_input - 1))) in
+    if (is_card card1 && is_card card2 && is_card card3 &&
+      card1 <> card2 && card2 <> card3)
+      then List.map convert_string_card_to_int [card1;card2;card3]
+    else let () = print_endline "You didn't enter valid cards" in
+    cards_to_exchange ())) with | _ ->print_endline "You entered invalid cards";
+                                      cards_to_exchange ()
+
 (*[done_with_turn username] prints a bunch of hearts to block the
 previous player's hand from sight from the next player*)
 let rec done_with_turn username =
@@ -288,8 +300,11 @@ let rec done_with_turn username =
 says he is ready to play*)
 let rec ready_to_play username =
   let () = print_endline ("Enter READY to signal ready to play, " ^ username) in
-  let input = read_line () in
-  if (String.trim (String.uppercase_ascii input)) = "READY" then true
+  let input = String.trim (String.uppercase_ascii (read_line ())) in
+  if input = "READY" then true
+  else if input = "HELP" then  (print_help; ready_to_play username)
   else ready_to_play username
+
+
 
 
