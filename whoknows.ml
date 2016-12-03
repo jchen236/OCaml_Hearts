@@ -334,11 +334,10 @@ let rec update_hand (p:player) (cards: card list) (player_lst: player list) (res
  	let doner_id = doner.player_id in
  	let doner_donation = find_exchange doner_id exchanges in
  	let receiver_cards = p.cards in
- 	let receiver_new_cards = receiver_cards @ doner_donation in
- 	let doner_cards = doner.cards in
- 	let doner_new_cards = remove_cards_from_hand doner_cards doner_donation in
- 	let new_player_lst = update_hand p receiver_new_cards player_lst [] in
- 	update_hand doner doner_new_cards new_player_lst [] 
+ 	let receiver_plus_new_cards = receiver_cards @ doner_donation in
+ 	let receiver_donation = find_exchange p.player_id exchanges in
+ 	let receiver_minus_donation = remove_cards_from_hand receiver_plus_new_cards receiver_donation in
+ 	update_hand p receiver_minus_donation player_lst []
 
 
 (*TEST*)
@@ -366,6 +365,7 @@ let rec exchange_cards (player_lst: player list ) (exchanges: (player_id * card 
 	| [] -> res
 	| h::tl -> 
 	exchange_cards tl exchanges (single_exchange h res exchanges)
+
 
 (* let play_card (p:player) (c:card) = 
 	if List.mem c get_legal_moves *)
@@ -470,4 +470,57 @@ let play_turn (player_lst: player list) : (player * card) list =
 
 let tuple_list = List.map (fun player -> (player, -1)) player_lst in
 helper tuple_list
+
+
+let rec remove_card (player_lst: player list) (move: (player_id *  card)) (res: player list) : player list = 
+	match player_lst with
+	| [] -> res
+	| p::tl ->
+		if p.player_id = fst move 
+		then let new_player = 
+		{  cards = remove_card_from_hand p.cards (snd move);
+    	total_score =  p.total_score;
+	    round_score =  p.round_score;
+	    player_id = p.player_id;
+	    is_AI = p.is_AI;
+	    position = p.position;
+	    }
+		in remove_card tl move (res@[new_player])
+	else remove_card tl move res @ [p]
+
+let rec update_score_after_turn (player_lst: player list) (turn_result: (player_id * int)) (res: player list) : player list = 
+	match player_lst with
+	| [] -> res
+	| p::tl ->
+		if p.player_id = fst turn_result 
+		then let new_player =
+		{
+		cards = p.cards;
+		total_score = p.total_score + (snd turn_result);
+		round_score = p.round_score + (snd turn_result);
+		player_id = p.player_id;
+		is_AI = p.is_AI;
+		position = p.position;
+		}
+		in update_score_after_turn tl turn_result res @ [new_player]
+	else update_score_after_turn tl turn_result res @ [p]
+
+let rec get_position_given_id (player_lst: player list) (id: player_id) : int = 
+	match player_lst with
+	| [] -> failwith "No player has this id"
+	| h::tl ->
+		if h.player_id = id
+		then h.position
+	else get_position_given_id tl id
+
+
+let rec rearrange_player_list (player_lst: player list) (turn_result: (player_id *int)) : player list = 
+	let winner_position = get_position_given_id player_lst (fst turn_result) in
+	let res = ref [] in
+	let counter = ref winner_position in 
+	for i = 1 to 4 do
+	res := !res @ [find_player !counter player_lst]; (counter:= (!counter + 1) mod 4)
+	done;
+	!res 
+
 
