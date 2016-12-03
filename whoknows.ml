@@ -23,6 +23,8 @@
     position: int;
   }
 
+ let hearts_broken = ref false
+
 (* Calculates the bounds for the suit of this card. The bounds are inclusive*)
 let suit_bounds c : (int * int)= 
 	let (lowerbound:int) = (c-1)/13 in
@@ -43,7 +45,37 @@ let is_same_suit (c1:card) (c2:card) =
 let only_suit (c: card) (card_lst: hand) : card list = 
 	List.filter( fun x -> is_same_suit c x) card_lst
 
-(* Returns the string representation of a card the user inputs to an int
+let unwrap_optional_int optional =
+	match optional with
+	| Some i -> i
+	| None -> -1
+
+(* representation of a card
+ * cards will be represented by
+ * 1-13 is Diamonds
+ * - 1 -> 2 of Diamonds
+ * - 13 -> Ace of Diamonds
+ * 14-26 is Clubs
+ * 27-39 is Hearts
+ * 40-52 is Spades *)
+(*[rep_card_as_string card] returns the string representation of a card.
+e.g. if card = 3, "D4" would be returned*)
+let rep_card_as_string card =
+  let suit = if card <= 13 then "D"
+              else if card <= 26 then "C"
+              else if card <= 39 then "H"
+              else "S" in
+  let num = ((card-1) mod 13) in
+  let rank = (match num with
+  | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 -> string_of_int (num + 2)
+  | 9 -> "J"
+  | 10 -> "Q"
+  | 11 -> "K"
+  | 12 -> "A"
+  | _ -> "not a card"
+	) in (suit ^ rank)
+
+(* (* Returns the string representation of a card the user inputs to an int
     e.g. C10 (10 of Clubs) = 23 *)
 let string_to_int_card (str: string) : int =
 	match (String.get str 0) with
@@ -51,7 +83,37 @@ let string_to_int_card (str: string) : int =
 	| 'C' -> int_of_string (String.sub str 1 (String.length str - 1)) + 13
 	| 'H' -> int_of_string (String.sub str 1 (String.length str - 1)) + 26
 	| 'S' -> int_of_string (String.sub str 1 (String.length str - 1)) + 39
-	| _ -> failwith "invalid string card entered"
+	| _ -> failwith "invalid string card entered" *)
+
+(*[rank_repr_as_int rank] takes in a string [rank] and
+returns its corresponding int value as represented in the deck*)
+let rank_repr_as_int rank =
+  match rank with
+  |"2" |"3" |"4" |"5" |"6" |"7" |"8" |"9" |"10" -> (int_of_string rank - 1)
+  |"J" -> 10
+  |"Q" -> 11
+  |"K" -> 12
+  |"A" -> 13
+  | _ -> -1
+
+(*[convert_string_card_to_int card] returns an int represenation
+of a card's string representation*)
+let convert_string_card_to_int card =
+  let rank = rank_repr_as_int (String.sub card 1 (String.length card - 1)) in
+  match (String.sub card 0 1) with
+  |"D" -> rank
+  |"C" -> rank + 13
+  |"H" -> rank + 26
+  |"S" -> rank + 39
+  | _ -> -1
+
+(*[convert_hand_to_string_list cards]
+returns a list of cards represented as strings
+-[cards] is a "hand" containing a list of ints (representing cards) *)
+let rec convert_hand_to_string_list cards =
+  match cards with
+  | [] -> []
+  | h::t -> (rep_card_as_string h)::(convert_hand_to_string_list t)
 
 let point_of_card (c:card) = 
 	if c >=27 && c <=39 then 1
@@ -89,10 +151,10 @@ let get_first_play (card_lst:card list) : card option =
  * has a card that is of x's suit, he must play it. Otherwise, he can play anything if hearts
  * are broken, or any non-heart cart if hearts are not broken.
 *)
-let get_legal_moves (c:card option) (hearts_broken:bool) (card_lst:card list) : card list = 
+let get_legal_moves (c:card option) (card_lst:card list) : card list = 
 	match c with
 	| None ->
-		if hearts_broken then card_lst
+		if !hearts_broken then card_lst
 	else filter_hearts card_lst
 	| Some x -> 
 		(let same_suit_as_c = only_suit x card_lst in
@@ -228,9 +290,6 @@ let initialize_all_players (player_id_lst: player_id list) (ai_lst:player_id lis
  		if h.position = position then h
  	else find_player position tl 
 
-let sort_player_list_by_pos (player_lst: player list) : player list =
-	List.sort (fun player1 player2 -> Pervasives.compare player1.position player2.position) player_lst 
-
 let remove_card_from_hand (p_cards: card list) (c: card) = 
 	List.filter (fun x -> x <> c) p_cards 
 
@@ -335,49 +394,80 @@ let is_card card =
     let rank =  String.sub card 1 (String.length card - 1) in
     is_suit suit && is_rank rank
 
+(*[done_with_turn username] prints a bunch of hearts to block the
+previous player's hand from sight from the next player*)
+let rec done_with_turn username =
+    let rec heart_string str num =
+      (if num = 0 then str
+      else heart_string (str ^ " <3") (num-1)) in
+    print_endline (heart_string "" 10000);
+    print_endline ""
+  
+
+(*[ready_to_play username] returns true once the player whose turn it is
+says he is ready to play*)
+let rec ready_to_play username =
+  Printf.printf "Enter READY to signal ready to play, %s: " username;
+  let input = read_line () in
+  if (String.trim (String.uppercase_ascii input)) = "READY" then ()
+  else ready_to_play username
+
 (*[input_player_card player_name] returns a tuple of the [player_name]*)
 let rec input_player_card (player_name: string) : (player_id * string) =
-  let () = print_endline "Play a card:" in
+  Printf.printf "Play a card: ";
   let c = String.trim (read_line ()) in
   let len = String.length c in
   let card = String.sub c 0 1 ^ (String.trim (String.sub c 1 (len-1))) in
   if is_card card then (player_name, card)
-  else (print_endline "You didn't enter a card!";input_player_card player_name)
+  else (print_endline "You didn't enter a real card!"; input_player_card player_name)
 
+(* Asks player for his/her move, continues to call itself until a legal move is entered *)
+let rec move_repl (player: player) (played_cards: card option array) : card = 
+	let string_card = snd (input_player_card player.player_id) in
+	let card = convert_string_card_to_int string_card in
+	let legal_moves = get_legal_moves played_cards.(0) player.cards in		
+	if (List.mem card legal_moves) then begin 
+		done_with_turn player.player_id;
+		(hearts_broken := if card >= 27 && card <= 39 then true else !hearts_broken);
+		card 
+	end
+	else begin 
+		print_string "Invalid -- "; 
+		move_repl player played_cards
+	end
 
 (* Plays out a turn. It takes in a list of players and goes through each one asking for
 	them to input a card. It checks to see if the card the player plays is in his/her hand
 	and is a valid move. 
 *)
-let play_turn (player_lst: player list) =
-	let turn_cards = [] in
-	let temp_hearts_broken = true in
+let play_turn (player_lst: player list) : (player * card) list =
+	let played_cards = [| None; Some(-1); Some(-1); Some(-1) |] in
 
-	let rec get_move player = 
-		let string_card = snd (input_player_card player.player_id) in
-		Printf.printf "string_card %s\n" string_card;
-		let card = string_to_int_card string_card in
-		Printf.printf "card %i\n" card;
-		let legal_moves = get_legal_moves (get_first_play turn_cards) temp_hearts_broken player.cards in				
-		Printf.printf "legal moves: ";
-		let rec helper lst = 
-		(match lst with
-		| [] -> ()
-		| h::t -> Printf.printf "%i, " h; helper t)
-		in
-		helper legal_moves
-		;
+	let play_move player played_cards =
+		ready_to_play player.player_id;
 
-		Printf.printf "\nList.mem: %B\n" (List.mem card legal_moves);
-		if (List.mem card legal_moves) then card else begin print_endline ("You don't have this card or this is an invalid play"); get_move player end 
-	 in
+		print_string "\nPlayed cards: ";
+		(if played_cards.(0) = None then 
+			print_string "None"
+		else 
+			Array.iter (fun card -> if card = Some(-1) then () else Printf.printf "%s " (rep_card_as_string (unwrap_optional_int card))) played_cards
+		);
+		print_string "\nHand: ";
+		List.iter (fun card -> Printf.printf "%s " (rep_card_as_string card) ) player.cards;
+		print_endline "\n";
+
+		move_repl player played_cards 
+	in
 
 	let rec helper lst =
 		match lst with
 		| [] -> []
-		| h::t -> [get_move h] @ helper t
+		| (p, c)::t -> let move = play_move p played_cards in
+				  				played_cards.(p.position) <- Some move;
+				  				let updated_player = {p with cards = (remove_card_from_hand p.cards move)} in
+				  				[(updated_player, move)] @ helper t
 	in
 
-helper (List.rev (sort_player_list_by_pos player_lst))
-
+let tuple_list = List.map (fun player -> (player, -1)) player_lst in
+helper tuple_list
 

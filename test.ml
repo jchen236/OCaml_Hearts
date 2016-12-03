@@ -1,7 +1,7 @@
 open OUnit2
 open Whoknows
 
-let points_turn_test = "points turn test" >::: [
+let points_turn_test = [
 	"all spades" >:: (fun _ -> assert_equal ("p4", 0) (calculate_turn_result [("p1", 40); ("p2", 41); ("p3", 42); ("p4", 43)]));
 	"all spades, queen of spades" >:: (fun _ -> assert_equal ("p1", 13) (calculate_turn_result [("p1", 50); ("p2", 41); ("p3", 42); ("p4", 43)]));
 	"all clubs" >:: (fun _ -> assert_equal ("p3", 0) (calculate_turn_result [("p1", 14); ("p2", 16); ("p3", 26); ("p4", 19)]));
@@ -21,7 +21,7 @@ let points_turn_test = "points turn test" >::: [
 	"Three hearts, hearts start, one other" >:: (fun _ -> assert_equal ("p3", 3) (calculate_turn_result [("p1", 27); ("p2", 28); ("p3", 29); ("p4", 42)] ));
 ]
 
-let legal_moves_test = "legal moves test" >::: [
+let legal_moves_test = [
 	"all spades, hearts not broken" >:: (fun _ -> assert_equal [42; 41] (get_legal_moves (Some 40) false [1; 14; 27; 42; 41] ));
 	"all diamonds, hearts not broken" >:: (fun _ -> assert_equal [1; 2] (get_legal_moves (Some 3) false [1; 2; 14; 27; 42; 41] ));
 	"all clubs, hearts not broken" >:: (fun _ -> assert_equal [14; 15] (get_legal_moves (Some 16) false [1; 2; 14; 15; 27; 42; 41] ));
@@ -57,7 +57,7 @@ let player_lst2 = [
 let exchange2 = [("bob", [2; 19; 37]); ("charlie", [3; 14; 36]); ("drake", [4; 29; 38]); ("ellie", [1; 23; 40])]
 let result2 = exchange_cards player_lst2 exchange2 player_lst2
 
-let exchange_test = "exchanging cards test" >::: [
+let exchange_test = [
  	"ellie's cards 1" >:: (fun _ -> assert_equal [25; 26; 16; 17; 18] (List.hd result1).cards);
 	"ellie's total score 1" >:: (fun _ -> assert_equal 0 (List.hd result1).total_score);
 	"ellie's round score 1" >:: (fun _ -> assert_equal 0 (List.hd result1).round_score);
@@ -116,11 +116,32 @@ let exchange_test = "exchanging cards test" >::: [
 	"drake's position 2" >:: (fun _ -> assert_equal 3 (List.nth result2 3).position); 
 ]
 
-let turn_cards1 = play_turn player_lst1  (*play C9, D1, C1, C7  --- Player 2 has no clubs *)
-(* let turn_test = [
-	"turn1" >:: (fun _ -> assert_equal [22; 1; 14; 20] turn_cards1); 
-] *)
+(*play C10, D2, C2, C8  --- Player 2 has no clubs *)
+(* play ellie: C2342, C-4, C2, C1, C10   Bob: C1, D3   Charlie: D10, C3     Drake: C5    *)
+(* let turn_cards1 = List.sort (fun card1 card2 -> Pervasives.compare card1 card2) (play_turn player_lst1) 
+ *)
+(* let player_lst3 =  [
+	 {cards = [22; 23; 24; 25; 26]; total_score = 0; round_score = 0; player_id = "ellie"; is_AI = false; position = 0};                            
+	 {cards = [1; 2; 3; 4; 5; 6; 7]; total_score = 0; round_score = 0; player_id = "bob"; is_AI = false; position = 1};
+	 {cards = [8; 9; 10; 11; 12; 13; 14; 15]; total_score = 0; round_score = 0; player_id = "charlie"; is_AI = false; position = 2};
+	 {cards = [16; 17; 18; 19; 20; 35]; total_score = 0; round_score = 0; player_id = "drake"; is_AI = false; position = 3}]
+(* !HB ~ play ellie:  C10   Bob: D3   Charlie: C3     Drake: H10, C5    *)
+let turn_cards2 = List.sort (fun card1 card2 -> Pervasives.compare card1 card2) (play_turn player_lst3) 
+ *)
+let player_lst4 =  [
+	 {cards = [22; 23; 24; 25; 26]; total_score = 0; round_score = 0; player_id = "ellie"; is_AI = false; position = 0};                            
+	 {cards = [1; 2; 3; 4; 5; 6; 7]; total_score = 0; round_score = 0; player_id = "bob"; is_AI = false; position = 1};
+	 {cards = [8; 9; 10; 11; 12; 13; 14; 15]; total_score = 0; round_score = 0; player_id = "charlie"; is_AI = false; position = 2};
+	 {cards = [35]; total_score = 0; round_score = 0; player_id = "drake"; is_AI = false; position = 3}]
+let turn_cards3 = List.sort (fun card1 card2 -> Pervasives.compare card1 card2) (play_turn player_lst4) 
 
-let tests = "test suite" >::: points_turn_test :: legal_moves_test :: []
+let turn_test = [
+	(* "turn1" >:: (fun _ -> assert_equal [1; 14; 20; 22] turn_cards1);  *)
+	(* "turn1B" >:: (fun _ -> assert_equal [2; 15; 17; 22] turn_cards1);  *)
+	(* "turn2A" >:: (fun _ -> assert_equal [2; 15; 17; 22] turn_cards2);  *)
+	"turn3A" >:: (fun _ -> assert_equal [2; 15; 22; 35] turn_cards3); 
+]
+
+let tests = "test suite" >::: points_turn_test @ legal_moves_test @ turn_test
 
 let _ = run_test_tt_main tests
