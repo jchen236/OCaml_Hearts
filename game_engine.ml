@@ -19,7 +19,9 @@ let run_game () =
 		let round_cards = ref [] in
 
 		for i = 1 to 13 do
-			let turn_cards = ref [] in 
+			let turn_cards = ref [] in (*NOT SURE IF THIS GOES HERE, ( i think it should go inside play_turn), but
+		albert needs access to the cards played so far in a turn for his AI, so whether his AI is going first or fourth,
+		it needs access to those cards*)
 			let (play_turn_res : (player * card) list) = play_turn !player_list in
 			let (turn_plays: (player_id * card) list) = player_card_to_playerid_card play_turn_res in
 
