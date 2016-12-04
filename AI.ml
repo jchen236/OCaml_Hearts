@@ -125,10 +125,10 @@ let rec choose_random_three lst acc =
  * Follows a greedy approach to eliminate diamonds or clubs. Always keeps spades
  * of Jack or lower. Returns a list of three cards that the AI wishes to
  * exchange. *)
-let ai_exchange (ai : player) : (player * card list) =
+let ai_exchange (ai : player) : (player_id * card list) =
   let ai_id = ai.player_id in
   let ai_hand = ai.cards in
-  (ai, choose_random_three ai_hand [])
+  (ai_id, choose_random_three ai_hand [])
 
   (* Generates a random number from 0 to n given n. *)
   let randomizer (n:int) = Random.int n
@@ -372,16 +372,19 @@ let ai_exchange (ai : player) : (player * card list) =
 
   let create_state (turn_array : int option array) (ordered_players : player list) (total_cards_played : card list) =
     failwith "Unimplemented"
-
 (*
   let find_first_idx lst =
     let find_first_idx_helper lst acc =
     match lst with
-    | *)
+    | []   -> failwith "Not possible"
+    | h::t -> if h = None
+                then acc
+              else find_first_idx_helper t (acc + 1)
+    in find_first_idx_helper lst 0
 
   let original_array_to_list (turn_array : int option array) =
     match turn_array with
-    | [|a;b;c;d|] -> [a;b;c;d]
+    | [|a;b;c;d|] -> [a;b;c;d] *)
 
   (* Finite Look-Ahead AI:
    * Calculates the best card by running a simulation of a round on every
