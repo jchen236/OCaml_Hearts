@@ -120,7 +120,7 @@ let display_player_stats_helper username =
   print_endline ("Best Score: " ^ (string_of_int p.best_score));
   print_endline ("Average Score: " ^ (string_of_float p.avg_score))
 
-(*update_existing_json username won score] updates an existing json
+(*[update_existing_json username won score] updates an existing json
 that stores an individual player's statistics
 -[username] is a string of the player's name
 -[won] is a boolean whether or not the player won the most recent game
@@ -137,6 +137,18 @@ let update_existing_json username won score =
   ("win_percentage", `Float win_percent); ("best_score", `Int bs);
   ("avg_score", `Float a_score)] in
   Yojson.Basic.to_file (username ^ ".json") new_stats
+
+(*[update_player_json player_lst winner] takes a list of players and calls
+update_existing_json on each one*)
+let rec update_player_json player_lst winner : unit = 
+  match player_lst with
+  | [] -> unit
+  | p::tl -> 
+    let p_id = p.player_id in
+    let win = (p_id = winner) in
+    let score = p.total_score in
+    update_existing_json p_id win score;
+    update_player_json tl winner 
 
 (*[is_suit s] returns a boolean if the string is a valid suit (C,D,S,H)*)
 let is_suit s =
