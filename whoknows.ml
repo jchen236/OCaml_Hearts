@@ -553,4 +553,24 @@ let rec rearrange_player_list (player_lst: player list) (turn_result: (player_id
 	done;
 	!res
 
+let rec is_winner (player_lst: player list) : bool = 
+	match player_lst with
+	| [] -> false
+	| h::tl ->
+		if h.total_score > 100 then true
+	else is_winner tl
+
+let rec extract_playerid_and_score (player_lst: player list) (res: (player_id * int) list) = 
+	match player_lst with
+	| [] -> res
+	| h::tl ->
+		extract_playerid_and_score tl res @ [(h.player_id, h.total_score)]
+
+let get_winner (player_lst: player list) : player_id =
+
+	let player_id_and_score = extract_playerid_and_score player_lst [] in
+	let sorted_player_id_and_score = List.sort (fun x y -> Pervasives.compare (snd x) (snd y)) player_id_and_score in
+	(fst (List.hd sorted_player_id_and_score))
+
+
 
