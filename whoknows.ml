@@ -370,6 +370,31 @@ let rec exchange_cards (player_lst: player list ) (exchanges: (player_id * card 
 (* let play_card (p:player) (c:card) = 
 	if List.mem c get_legal_moves *)
 
+let rec is_valid_exchange (card_lst: card list) (exchange: card list) = 
+	match exchange with
+	| [] -> true
+	| h::tl ->
+		(List.mem h card_lst) && is_valid_exchange card_lst tl 
+
+(*Returns a list of exchanges for the exchange phase*)
+let rec exchange_phase (player_lst: player list) (res: (player_id * card list) list ) : ((player_id * card list) list ) = 
+	match player_lst with 
+	| [] -> res
+	| p::tl ->
+		if p.is_AI then
+		let ai_cards= ai_exchange p in
+		exchange_phase tl res @ [ai_cards]
+	else (
+		let () =  print_endline "Exchange for: " + p.player_id + "\n" in
+		let tentative_exchange = cards_to_exchange() in
+		if is_valid_exchange p.cards tentative_exchange then
+			let p_exchange = (p.player_id, tentative_exchange) in
+			exchange_phase tl res @ [p_exchange]
+		else 
+			let () = print_endline "These cards are not in your hand" in
+			exchange_phase player_lst res
+	)
+
 
 
 
@@ -471,6 +496,11 @@ let play_turn (player_lst: player list) : (player * card) list =
 let tuple_list = List.map (fun player -> (player, -1)) player_lst in
 helper tuple_list
 
+let rec player_card_to_playerid_card (turn_res: (player * card) list) (res: (player_id * card) list ): (player_id * card) list = 
+	match turn_res with
+	| [] -> res
+	| h::tl ->
+		player_card_to_playerid_card tl res @ [((fst h).player_id, snd h)]
 
 let rec remove_card (player_lst: player list) (move: (player_id *  card)) (res: player list) : player list = 
 	match player_lst with
