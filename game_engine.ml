@@ -1,4 +1,5 @@
-include whoknows.ml
+open whoknows.ml
+open AI
 
 let run_game () = 
 
