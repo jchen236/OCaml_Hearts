@@ -1,9 +1,8 @@
-open AI
-open Player
 open Card
+open Player
 open Save_game
+open AI
 (*CARD REPRESENTATION*)
-
 
 let unwrap_optional_int optional =
 	match optional with
@@ -12,17 +11,17 @@ let unwrap_optional_int optional =
 
 		(*********************************************)
 (* Calculates the number of points a player receives from "winning" the hand*)
-let rec score_of_turn (plays: (player_id * Card.card) list) : int =
+let rec score_of_turn (plays: (Player.player_id * Card.card) list) : int =
 	match plays with
 	| [] -> 0
 	| h::t -> Card.point_of_card (snd h) + score_of_turn t
 
 (* Compares two plays of the same suit and returns the (player,card) tuple that is the max*)
-let max_play (play1: (player_id * Card.card)) (play2: (player_id * Card.card)) =
+let max_play (play1: (Player.player_id * Card.card)) (play2: (Player.player_id * Card.card)) =
 	if snd play1 > snd play2 then play1 else play2
 
 (* Given a list of plays of the same suit, return the player that won the turn*)
-let rec winner_of_turn (plays: (player_id * Card.card) list) (curr_winner: (player_id * Card.card)) : player_id =
+let rec winner_of_turn (plays: (Player.player_id * Card.card) list) (curr_winner: (Player.player_id * Card.card)) : Player.player_id =
 	match plays with
 	| [] -> fst curr_winner
 	| h::t -> winner_of_turn t (max_play h curr_winner)
@@ -54,7 +53,7 @@ let get_legal_moves (c : Card.card option) (card_lst : Card.card list) (hearts_b
 		| h::t -> same_suit_as_c)
 
 (*Returns the player who "won" the hand and the number of points received*)
-let calculate_turn_result (plays: (player_id * Card.card) list) : (player_id * int) =
+let calculate_turn_result (plays: (Player.player_id * Card.card) list) : (Player.player_id * int) =
 	let first_play = List.hd plays in
 	let first_card = snd first_play in
 	let score = score_of_turn plays in
@@ -62,16 +61,16 @@ let calculate_turn_result (plays: (player_id * Card.card) list) : (player_id * i
 	let winner = winner_of_turn considered_plays first_play in
 	(winner,score)
 
-let (ai_names: player_id list)= ["Professor Clarkson"; "Professor Oak"; "Professor Constable"; "Professor George"]
+let (ai_names: Player.player_id list)= ["Professor Clarkson"; "Professor Oak"; "Professor Constable"; "Professor George"]
 
 (*Creates a record for a human player*)
-let initialize_human_players acc (player_name:player_id) =
+let initialize_human_players acc (player_name: Player.player_id) =
 	let new_player = Player.init in
 	let new_player_with_name = Player.set_id new_player player_name in
 	acc @ [new_player_with_name]
 
 (*Creates a record for a AI *)
-let initialize_ai acc (ai_name: player_id) =
+let initialize_ai acc (ai_name: Player.player_id) =
 	let new_ai = Player.init in
 	let new_ai_with_name = Player.set_id new_ai ai_name in
 	acc @ [new_ai_with_name]
@@ -139,7 +138,7 @@ let rec distribute_hands (players: Player.player list) (hand_list : Card.card li
 
 (*Call this method*)
 (*Given a list of players and ai names, create player records for each of them*)
-let initialize_all_players (player_id_lst: player_id list) (ai_lst:player_id list) : Player.player list =
+let initialize_all_players (player_id_lst: Player.player_id list) (ai_lst: Player.player_id list) : Player.player list =
 	let num_players = List.length player_id_lst in
 	let num_ais = 4 - num_players in
 	let player_id_lst = List.fold_left initialize_human_players [] player_id_lst in
@@ -167,7 +166,7 @@ let initialize_all_players (player_id_lst: player_id list) (ai_lst:player_id lis
 
 
 (* Given a p_id and exchanges, return the list of cards that is associated with that p_id*)
-let rec find_exchange (p_id: player_id) (exchanges: (player_id * Card.card list) list ) : Card.card list =
+let rec find_exchange (p_id: Player.player_id) (exchanges: (Player.player_id * Card.card list) list ) : Card.card list =
 	match exchanges with
 	| [] -> failwith "No such doner made a exchange"
 	| h::tl -> if fst h = p_id then snd h
@@ -188,7 +187,7 @@ let rec update_hand (p: Player.player) (cards: Card.card list) (player_lst: Play
 
 (*exchange will take a player, a list of players,  a list of (player_id, card list) tuples, (and a "rule")
  * and return the card list that this player should receive. Returns the new updated player_lst *)
- let single_exchange (p: Player.player) (player_lst: Player.player list) (exchanges: (player_id * Card.card list ) list) : Player.player list =
+ let single_exchange (p: Player.player) (player_lst: Player.player list) (exchanges: (Player.player_id * Card.card list ) list) : Player.player list =
 
  	let doner_position = (Player.get_position p + 3) mod 4 in
  	let doner = find_player doner_position player_lst in
@@ -221,7 +220,7 @@ for the res argument, pass in an identical player_lst
 
 *)
 (*Given a list of players and their exchanges, return the new list of players*)
-let rec exchange_cards (player_lst: Player.player list ) (exchanges: (player_id * Card.card list ) list ) (res: Player.player list) : Player.player list =
+let rec exchange_cards (player_lst: Player.player list ) (exchanges: (Player.player_id * Card.card list ) list ) (res: Player.player list) : Player.player list =
 	match player_lst with
 	| [] -> res
 	| h::tl ->
@@ -238,12 +237,12 @@ let rec is_valid_exchange (card_lst: Card.card list) (exchange: Card.card list) 
 		(List.mem h card_lst) && is_valid_exchange card_lst tl 
 
 (*Returns a list of exchanges for the exchange phase*)
-let rec exchange_phase (player_lst: Player.player list) (res: (player_id * Card.card list) list ) : ((player_id * Card.card list) list ) = 
+let rec exchange_phase (player_lst: Player.player list) (res: (Player.player_id * Card.card list) list ) : ((Player.player_id * Card.card list) list ) = 
 	match player_lst with 
 	| [] -> res
 	| p::tl ->
 		if (Player.get_is_AI p) then
-		let ai_cards= ai_exchange p in
+		let ai_cards= AI.ai_exchange p in
 		exchange_phase tl res @ [ai_cards]
 	else (
 		let () =  print_endline ("Exchange for: " ^ Player.get_id p  ^ "\n") in
@@ -299,7 +298,7 @@ let rec ready_to_play username =
   else ready_to_play username
 
 (*[input_player_card player_name] returns a tuple of the [player_name]*)
-let rec input_player_card (player_name: string) : (player_id * string) =
+let rec input_player_card (player_name: string) : (Player.player_id * string) =
   Printf.printf "Play a card: ";
   let c = String.trim (read_line ()) in
   let len = String.length c in
@@ -358,13 +357,13 @@ let play_turn (player_lst: Player.player list) (round_cards: Card.card list) (he
 let tuple_list = List.map (fun player -> (player, -1)) player_lst in
 helper tuple_list
 
-let rec player_card_to_playerid_card (turn_res: (Player.player * Card.card) list) (res: (player_id * Card.card) list ): (player_id * Card.card) list = 
+let rec player_card_to_playerid_card (turn_res: (Player.player * Card.card) list) (res: (Player.player_id * Card.card) list ): (Player.player_id * Card.card) list = 
 	match turn_res with
 	| [] -> res
 	| h::tl ->
 		player_card_to_playerid_card tl res @ [( Player.get_id (fst h), snd h)]
 
-let rec remove_card (player_lst: Player.player list) (move: (player_id * Card.card)) (res: Player.player list) : Player.player list =
+let rec remove_card (player_lst: Player.player list) (move: (Player.player_id * Card.card)) (res: Player.player list) : Player.player list =
 	match player_lst with
 	| [] -> res
 	| p::tl ->
@@ -374,7 +373,7 @@ let rec remove_card (player_lst: Player.player list) (move: (player_id * Card.ca
 		in remove_card tl move (res@[new_player])
 	else remove_card tl move res @ [p]
 
-let rec update_score_after_turn (player_lst: Player.player list) (turn_result: (player_id * int)) (res: Player.player list) : Player.player list =
+let rec update_score_after_turn (player_lst: Player.player list) (turn_result: (Player.player_id * int)) (res: Player.player list) : Player.player list =
 	match player_lst with
 	| [] -> res
 	| p::tl ->
@@ -385,7 +384,7 @@ let rec update_score_after_turn (player_lst: Player.player list) (turn_result: (
 		in update_score_after_turn tl turn_result res @ [new_player]
 	else update_score_after_turn tl turn_result res @ [p]
 
-let rec get_position_given_id (player_lst: Player.player list) (id: player_id) : int =
+let rec get_position_given_id (player_lst: Player.player list) (id: Player.player_id) : int =
 	match player_lst with
 	| [] -> failwith "No player has this id"
 	| h::tl ->
@@ -394,7 +393,7 @@ let rec get_position_given_id (player_lst: Player.player list) (id: player_id) :
 	else get_position_given_id tl id
 
 
-let rec rearrange_player_list (player_lst: Player.player list) (turn_result: (player_id *int)) : Player.player list =
+let rec rearrange_player_list (player_lst: Player.player list) (turn_result: (Player.player_id *int)) : Player.player list =
 	let winner_position = get_position_given_id player_lst (fst turn_result) in
 	let res = ref [] in
 	let counter = ref winner_position in
@@ -410,13 +409,13 @@ let rec is_winner (player_lst: Player.player list) : bool =
 		if (Player.get_total_score h) > 100 then true
 	else is_winner tl
 
-let rec extract_playerid_and_score (player_lst: Player.player list) (res: (player_id * int) list) = 
+let rec extract_playerid_and_score (player_lst: Player.player list) (res: (Player.player_id * int) list) = 
 	match player_lst with
 	| [] -> res
 	| h::tl ->
 		extract_playerid_and_score tl res @ [(Player.get_id h, Player.get_total_score h)]
 
-let get_winner (player_lst: Player.player list) : player_id =
+let get_winner (player_lst: Player.player list) : Player.player_id =
 
 	let player_id_and_score = extract_playerid_and_score player_lst [] in
 	let sorted_player_id_and_score = List.sort (fun x y -> Pervasives.compare (snd x) (snd y)) player_id_and_score in

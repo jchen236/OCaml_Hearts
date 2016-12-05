@@ -1,6 +1,9 @@
 (* Contains methods to parse json files as well as write them
  * for data saving. Utilizies the YoJson module. *)
 
+open Card
+open Player
+
 (* Prints the top 5 player high scores from the leaderboard *)
 module SaveGame : sig
 val display_high_score : unit -> unit
@@ -20,7 +23,12 @@ val update_existing_json: string -> bool -> int -> unit
 (* Prints an individual player's statistics for the given username*)
 val display_player_stats : string -> unit
 
+val get_human_players : unit -> string list
 
+val update_player_json : Player.player list -> Player.player_id -> unit
+
+val print_help : unit -> unit
 val cards_to_exchange : unit -> int list
 val convert_string_card_to_int : string -> int
+
 end

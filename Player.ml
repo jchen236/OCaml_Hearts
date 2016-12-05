@@ -9,7 +9,7 @@ include Card
 		is_AI : bool;
 		position : int;
 	}
-
+	type player_id = string
 	let init = 
 	{
 		player_id = "PLAYER";

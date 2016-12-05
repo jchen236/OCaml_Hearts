@@ -4,8 +4,9 @@ let () =
   print_endline "Please enter number of human players (int).
 Type HELP at any time to read the instructions,
 QUIT to end the game,
-and LEADERBOARD/STATS before or after a game
-to view the top scores/an individual player's stats";
+LEADERBOARD before a game to display the high scores,
+and STATS and a username (separated by a space) before a game
+to view that player's stats.";
   print_string  "> ";
-  (*let file_name = read_line () in
-  Game.main file_name*)
+
+  Game_engine.run_game ()

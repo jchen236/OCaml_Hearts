@@ -1,12 +1,10 @@
 open Card
 open Player
 
-
+module AI = struct
 (* AI for Hearts Card Game *)
 
   type ai_id = string
-  type player_id = string
-
 
   (* Contains all the hands of the four players and the list of cards that
    * have been played. There will be a 5 length list. Elements 1-4 will be the
@@ -80,17 +78,17 @@ let get_legal_moves (c:Card.card option)  (card_lst:Card.card list) (hearts_brok
     | h::t -> same_suit_as_c)
 
 (* Calculates the number of points a player receives from "winning" the hand*)
-let rec score_of_turn (plays: (player_id * Card.card) list) : int =
+let rec score_of_turn (plays: (Player.player_id * Card.card) list) : int =
   match plays with
   | [] -> 0
   | h::t -> Card.point_of_card (snd h) + score_of_turn t
 
 (* Compares two plays of the same suit and returns the (player,card) tuple that is the max*)
-let max_play (play1: (player_id * Card.card)) (play2: (player_id * Card.card)) =
+let max_play (play1: (Player.player_id * Card.card)) (play2: (Player.player_id * Card.card)) =
   if snd play1 > snd play2 then play1 else play2
 
 (* Given a list of plays of the same suit, return the player that won the turn*)
-let rec winner_of_turn (plays: (player_id * Card.card) list) (curr_winner: (player_id * Card.card)) : player_id =
+let rec winner_of_turn (plays: (Player.player_id * Card.card) list) (curr_winner: (Player.player_id * Card.card)) : Player.player_id =
   match plays with
   | [] -> fst curr_winner
   | h::t -> winner_of_turn t (max_play h curr_winner)
@@ -107,7 +105,7 @@ let rec choose_random_three lst acc =
  * Follows a greedy approach to eliminate diamonds or clubs. Always keeps spades
  * of Jack or lower. Returns a list of three cards that the AI wishes to
  * exchange. *)
-let ai_exchange (ai : Player.player) : (player_id * Card.card list) =
+let ai_exchange (ai : Player.player) : (Player.player_id * Card.card list) =
   let ai_id = Player.get_id ai in
   let ai_hand = Player.get_cards ai in
   (ai_id, choose_random_three ai_hand [])
@@ -225,7 +223,7 @@ let ai_exchange (ai : Player.player) : (player_id * Card.card list) =
     List.filter (fun x -> x <> card) card_list
 
   (*Returns the player who "won" the hand and the number of points received*)
-  let calculate_turn_result (plays: (player_id * Card.card) list) : (player_id * int) =
+  let calculate_turn_result (plays: (Player.player_id * Card.card) list) : (Player.player_id * int) =
     let first_play = List.hd plays in
     let first_card = snd first_play in
     let score = score_of_turn plays in
@@ -272,7 +270,7 @@ let ai_exchange (ai : Player.player) : (player_id * Card.card list) =
 
   (* If the winner is the ai, return the number of points taken for the round.
    * Else return 0, meaning the AI does not take the trick. *)
-  let winner_ai (turn_array : int option array) (ai_id : player_id) (ordered_players : Player.player list): int =
+  let winner_ai (turn_array : int option array) (ai_id : Player.player_id) (ordered_players : Player.player list): int =
     let result_tuples = convert_plays_to_tuple (no_option_array turn_array) ordered_players in
     let winner_tuple = calculate_turn_result result_tuples in
     if fst winner_tuple = ai_id
@@ -391,3 +389,4 @@ let ai_exchange (ai : Player.player) : (player_id * Card.card list) =
                   else future_calc_helper t best_points best_card
     in
     future_calc_helper (snd legal_moves) best_points best_card
+  end

@@ -10,6 +10,7 @@ type player =
 	position : int;
 }
 
+type player_id = string
 val init : player
 
 val get_id : player -> string
