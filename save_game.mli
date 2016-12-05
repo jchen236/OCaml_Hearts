@@ -22,4 +22,5 @@ val display_player_stats : string -> unit
 
 
 val cards_to_exchange : unit -> int list
+val convert_string_card_to_int : string -> int
 end

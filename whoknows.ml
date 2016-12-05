@@ -1,5 +1,6 @@
 open AI
 open Player
+open Card
 open Save_game
 (*CARD REPRESENTATION*)
 
@@ -41,10 +42,10 @@ let get_first_play (card_lst : Card.card list) : Card.card option =
  * has a card that is of x's suit, he must play it. Otherwise, he can play anything if hearts
  * are broken, or any non-heart cart if hearts are not broken.
 *)
-let get_legal_moves (hearts_broken: bool)(c : Card.card option) (card_lst : Card.card list) : Card.card list =
+let get_legal_moves (c : Card.card option) (card_lst : Card.card list) (hearts_broken: bool ref): Card.card list =
 	match c with
 	| None ->
-		if hearts_broken then card_lst
+		if !hearts_broken then card_lst
 	else Card.filter_hearts card_lst
 	| Some x ->
 		(let same_suit_as_c = Card.only_suit x card_lst in
@@ -172,7 +173,7 @@ let rec find_exchange (p_id: player_id) (exchanges: (player_id * Card.card list)
 	| h::tl -> if fst h = p_id then snd h
 	else find_exchange p_id tl
 
-let rec update_hand (p: Player.player) (cards: card list) (player_lst: Player.player list) (res: Player.player list): Player.player list=
+let rec update_hand (p: Player.player) (cards: Card.card list) (player_lst: Player.player list) (res: Player.player list): Player.player list=
 	 match player_lst with
 	 | [] -> res
 	 | h::tl ->
@@ -307,26 +308,26 @@ let rec input_player_card (player_name: string) : (player_id * string) =
   else (print_endline "You didn't enter a real card!"; input_player_card player_name)
 
 (* Asks player for his/her move, continues to call itself until a legal move is entered *)
-let rec move_repl (player: Player.player) (played_cards: Card.card option array) : Card.card =
+let rec move_repl (player: Player.player) (played_cards: Card.card option array) (hearts_broken: bool ref) : Card.card =
 	let string_card = snd (input_player_card (Player.get_id player)) in
-	let card = convert_string_card_to_int string_card in
-	let legal_moves = get_legal_moves played_cards.(0) (Player.get_cards player) in
+	let card = SaveGame.convert_string_card_to_int string_card in
+	let legal_moves = get_legal_moves played_cards.(0) (Player.get_cards player) hearts_broken in
 	if (List.mem card legal_moves) then begin
 		done_with_turn (Player.get_id player);
 		(hearts_broken := if card >= 27 && card <= 39 then true else !hearts_broken);
-		Card.create_card card
+		card
 	end
 	else begin
 		print_string "Invalid -- ";
-		move_repl player played_cards
+		move_repl player played_cards hearts_broken
 	end
 
 (* Plays out a turn. It takes in a list of players and goes through each one asking for
 	them to input a card. It checks to see if the card the player plays is in his/her hand
 	and is a valid move.
 *)
-let play_turn (player_lst: Player.player list) : (Player.player * Card.card) list =
-	let (played_cards: Card.card option) = [| None; Some(-1); Some(-1); Some(-1) |] in
+let play_turn (player_lst: Player.player list) (round_cards: Card.card list) (hearts_broken: bool ref) : (Player.player * Card.card) list =
+	let played_cards = [| None; Some(-1); Some(-1); Some(-1) |] in
 
 	let play_move player played_cards =
 		ready_to_play (Player.get_id player);
@@ -335,21 +336,22 @@ let play_turn (player_lst: Player.player list) : (Player.player * Card.card) lis
 		(if played_cards.(0) = None then
 			print_string "None"
 		else
-			Array.iter (fun card -> if card = Some(-1) then () else Printf.printf "%s " (rep_card_as_string (unwrap_optional_int card))) played_cards
+			Array.iter (fun card -> if card = Some(-1) then () else Printf.printf "%s " (Card.rep_card_as_string (unwrap_optional_int card))) played_cards
 		);
 		print_string "\nHand: ";
-		List.iter (fun card -> Printf.printf "%s " (rep_card_as_string card) ) Player.get_cards player;
+		List.iter (fun card -> Printf.printf "%s " (Card.rep_card_as_string card) ) (Player.get_cards player);
 		print_endline "\n";
 
-		move_repl player played_cards
+		move_repl player played_cards hearts_broken
 	in
 
 	let rec helper lst =
 		match lst with
 		| [] -> []
-		| (p, c)::t -> let move = play_move p played_cards in
+		| (p, c)::t -> (* let move = (if p.is_AI then ___ else play_move p played_cards) in *)
+						let move = play_move p played_cards in
 				  				played_cards.(Player.get_position p) <- Some move;
-				  				let updated_player = Player.set_cards p (Card.remove_card_from_hand (Player.get_cards p) move) in
+				  				let updated_player = {p with cards = (Card.remove_card_from_hand (Player.get_cards p) move)} in
 				  				[(updated_player, move)] @ helper t
 	in
 
@@ -368,7 +370,7 @@ let rec remove_card (player_lst: Player.player list) (move: (player_id * Card.ca
 	| p::tl ->
 		if Player.get_id p = fst move
 		then let new_player =
-	    Player.create_player (Player.get_id p) (Card.remove_card_from_hand (Player.get_cards) (snd move) ) (Player.get_total_score p) (Player.get_round_score p) (Player.get_is_AI p) (Player.get_position p)
+	    Player.create_player (Player.get_id p) (Card.remove_card_from_hand (Player.get_cards p) (snd move) ) (Player.get_total_score p) (Player.get_round_score p) (Player.get_is_AI p) (Player.get_position p)
 		in remove_card tl move (res@[new_player])
 	else remove_card tl move res @ [p]
 
@@ -378,15 +380,8 @@ let rec update_score_after_turn (player_lst: Player.player list) (turn_result: (
 	| p::tl ->
 		if (Player.get_id p) = fst turn_result
 		then let new_player =
-		{
-		cards = p.cards;
-		total_score = p.total_score + (snd turn_result);
-		round_score = p.round_score + (snd turn_result);
-		player_id = p.player_id;
-		is_AI = p.is_AI;
-		position = p.position;
-		}
-		Player.create_player (Player.get_id p) (Player.get_cards p) (Player.get_total_score + (snd turn_result)) (Player.get_round_score + (snd turn_result)) (Player.get_is_AI p) (Player.get_position p)
+
+		Player.create_player (Player.get_id p) (Player.get_cards p) (Player.get_total_score p+ (snd turn_result)) (Player.get_round_score p+ (snd turn_result)) (Player.get_is_AI p) (Player.get_position p)
 		in update_score_after_turn tl turn_result res @ [new_player]
 	else update_score_after_turn tl turn_result res @ [p]
 
@@ -395,7 +390,7 @@ let rec get_position_given_id (player_lst: Player.player list) (id: player_id) :
 	| [] -> failwith "No player has this id"
 	| h::tl ->
 		if (Player.get_id h) = id
-		then (Player.get_position)
+		then (Player.get_position h)
 	else get_position_given_id tl id
 
 

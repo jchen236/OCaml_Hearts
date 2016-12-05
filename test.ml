@@ -1,6 +1,8 @@
 open OUnit2
 open Whoknows
 open AI
+open Card
+open Player
 
 let points_turn_test = [
 	"all spades" >:: (fun _ -> assert_equal ("p4", 0) (calculate_turn_result [("p1", 40); ("p2", 41); ("p3", 42); ("p4", 43)]));
@@ -23,23 +25,23 @@ let points_turn_test = [
 ]
 
 let legal_moves_test = [
-	"all spades, hearts not broken" >:: (fun _ -> assert_equal [42; 41] (get_legal_moves (Some 40) [1; 14; 27; 42; 41] ));
-	"all diamonds, hearts not broken" >:: (fun _ -> assert_equal [1; 2] (get_legal_moves (Some 3) [1; 2; 14; 27; 42; 41] ));
-	"all clubs, hearts not broken" >:: (fun _ -> assert_equal [14; 15] (get_legal_moves (Some 16) [1; 2; 14; 15; 27; 42; 41] ));
-	"all spades, HB" >:: (fun _ -> assert_equal [42; 41] (get_legal_moves (Some 40) [1; 14; 27; 42; 41] ));
-	"all diamonds, HB" >:: (fun _ -> assert_equal [1; 2] (get_legal_moves (Some 3) [1; 2; 14; 27; 42; 41] ));
-	"all clubs, HB" >:: (fun _ -> assert_equal [14; 15] (get_legal_moves (Some 16) [1; 2; 14; 15; 27; 42; 41] ));
-	"all hearts" >:: (fun _ -> assert_equal [27; 28] (get_legal_moves (Some 29) [1; 2; 14; 15; 27; 28; 42; 41] ));
-	"spades, but you have no spades" >:: (fun _ -> assert_equal [1; 14; 27] (get_legal_moves (Some 40) [1; 14; 27] ));
-	"spades, but you have no spades HB" >:: (fun _ -> assert_equal [1; 14; 27] (get_legal_moves (Some 40) [1; 14; 27] ));
-	"diamonds, but you have no diamonds" >:: (fun _ -> assert_equal [14; 15; 27; 28; 42; 41] (get_legal_moves (Some 3) [14; 15; 27; 28; 42; 41] ));
-	"diamonds, but you have no diamonds HB" >:: (fun _ -> assert_equal [14; 15; 27; 28; 42; 41] (get_legal_moves (Some 3) [14; 15; 27; 28; 42; 41] ));
-	"clubs, but you have no clubs" >:: (fun _ -> assert_equal [1; 2; 27; 28; 42; 41] (get_legal_moves (Some 16) [1; 2; 27; 28; 42; 41] ));
-	"clubs, but you have no clubs HB" >:: (fun _ -> assert_equal [1; 2; 27; 28; 42; 41] (get_legal_moves (Some 16) [1; 2; 27; 28; 42; 41] ));
-	"hearts, but you have no hearts" >:: (fun _ -> assert_equal [1; 2; 14; 15; 42; 41] (get_legal_moves (Some 29) [1; 2; 14; 15; 42; 41] ));
-	"First player, !HB" >:: (fun _ -> assert_equal [1; 2; 14; 15; 42; 41] (get_legal_moves None [1; 2; 14; 15; 27; 28; 42; 41] ));
-	"First player, HB" >:: (fun _ -> assert_equal [1; 2; 14; 15; 27; 28; 42; 41] (get_legal_moves None [1; 2; 14; 15; 27; 28; 42; 41] ));
-	"First player, have only hearts but !HB" >:: (fun _ -> assert_equal [27; 28] (get_legal_moves None [27; 28] ));
+	"all spades, hearts not broken" >:: (fun _ -> assert_equal [42; 41] (get_legal_moves (Some 40) [1; 14; 27; 42; 41] (ref false) ));
+	"all diamonds, hearts not broken" >:: (fun _ -> assert_equal [1; 2] (get_legal_moves (Some 3) [1; 2; 14; 27; 42; 41] (ref false)));
+	"all clubs, hearts not broken" >:: (fun _ -> assert_equal [14; 15] (get_legal_moves (Some 16) [1; 2; 14; 15; 27; 42; 41] (ref false)));
+	"all spades, HB" >:: (fun _ -> assert_equal [42; 41] (get_legal_moves (Some 40) [1; 14; 27; 42; 41] (ref true)));
+	"all diamonds, HB" >:: (fun _ -> assert_equal [1; 2] (get_legal_moves (Some 3) [1; 2; 14; 27; 42; 41] (ref true)));
+	"all clubs, HB" >:: (fun _ -> assert_equal [14; 15] (get_legal_moves (Some 16) [1; 2; 14; 15; 27; 42; 41] (ref true)));
+	"all hearts" >:: (fun _ -> assert_equal [27; 28] (get_legal_moves (Some 29) [1; 2; 14; 15; 27; 28; 42; 41] (ref true)));
+	"spades, but you have no spades" >:: (fun _ -> assert_equal [1; 14; 27] (get_legal_moves (Some 40) [1; 14; 27] (ref false)));
+	"spades, but you have no spades HB" >:: (fun _ -> assert_equal [1; 14; 27] (get_legal_moves (Some 40) [1; 14; 27] (ref true)));
+	"diamonds, but you have no diamonds" >:: (fun _ -> assert_equal [14; 15; 27; 28; 42; 41] (get_legal_moves (Some 3) [14; 15; 27; 28; 42; 41] (ref false)));
+	"diamonds, but you have no diamonds HB" >:: (fun _ -> assert_equal [14; 15; 27; 28; 42; 41] (get_legal_moves (Some 3) [14; 15; 27; 28; 42; 41] (ref true)));
+	"clubs, but you have no clubs" >:: (fun _ -> assert_equal [1; 2; 27; 28; 42; 41] (get_legal_moves (Some 16) [1; 2; 27; 28; 42; 41] (ref false)));
+	"clubs, but you have no clubs HB" >:: (fun _ -> assert_equal [1; 2; 27; 28; 42; 41] (get_legal_moves (Some 16) [1; 2; 27; 28; 42; 41] (ref true)));
+	"hearts, but you have no hearts" >:: (fun _ -> assert_equal [1; 2; 14; 15; 42; 41] (get_legal_moves (Some 29) [1; 2; 14; 15; 42; 41] (ref false)));
+	"First player, !HB" >:: (fun _ -> assert_equal [1; 2; 14; 15; 42; 41] (get_legal_moves None [1; 2; 14; 15; 27; 28; 42; 41] (ref false)));
+	"First player, HB" >:: (fun _ -> assert_equal [1; 2; 14; 15; 27; 28; 42; 41] (get_legal_moves None [1; 2; 14; 15; 27; 28; 42; 41] (ref true)));
+	"First player, have only hearts but !HB" >:: (fun _ -> assert_equal [27; 28] (get_legal_moves None [27; 28] (ref false)));
 ]
 
 let player_lst1 =  [
