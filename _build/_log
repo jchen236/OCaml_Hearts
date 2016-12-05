@@ -1,0 +1,57 @@
+### Starting build.
+# Target: test.ml.depends, tags: { extension:ml, file:test.ml, ocaml, ocamldep, quiet }
+/Users/jimmychen/.opam/4.03.0/bin/ocamldep.opt -modules test.ml > test.ml.depends
+# Target: whoknows.ml.depends, tags: { extension:ml, file:whoknows.ml, ocaml, ocamldep, quiet }
+/Users/jimmychen/.opam/4.03.0/bin/ocamldep.opt -modules whoknows.ml > whoknows.ml.depends
+# Target: AI.ml.depends, tags: { extension:ml, file:AI.ml, ocaml, ocamldep, quiet }
+/Users/jimmychen/.opam/4.03.0/bin/ocamldep.opt -modules AI.ml > AI.ml.depends
+# Target: AI.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:AI.cmo, file:AI.ml, implem, ocaml, quiet }
+/Users/jimmychen/.opam/4.03.0/bin/ocamlc.opt -c -I /Users/jimmychen/.opam/4.03.0/lib/oUnit -I /Users/jimmychen/.opam/4.03.0/lib/ocaml -o AI.cmo AI.ml
++ /Users/jimmychen/.opam/4.03.0/bin/ocamlc.opt -c -I /Users/jimmychen/.opam/4.03.0/lib/oUnit -I /Users/jimmychen/.opam/4.03.0/lib/ocaml -o AI.cmo AI.ml
+File "AI.ml", line 121, characters 2-53:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a value that is not matched:
+(_::_::[]|_::[]|[])
+File "AI.ml", line 257, characters 4-80:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a value that is not matched:
+([| Some _ ; Some _ ; Some _ ; None |]|[| Some _ ; Some _ ; None ; _ |]|
+[| Some _ ; None ; _ ; _ |]|[| None ; _ ; _ ; _ |]|[|  |])
+File "AI.ml", line 279, characters 6-89:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a value that is not matched:
+None::_
+File "AI.ml", line 288, characters 4-108:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a value that is not matched:
+[|  |]
+File "AI.ml", line 304, characters 4-1338:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a value that is not matched:
+[|  |]
+File "AI.ml", line 331, characters 4-1523:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a value that is not matched:
+[|  |]
+File "AI.ml", line 363, characters 4-335:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a value that is not matched:
+[]
+File "AI.ml", line 383, characters 4-56:
+Warning 8: this pattern-matching is not exhaustive.
+Here is an example of a value that is not matched:
+[|  |]
+File "AI.ml", line 129, characters 6-11:
+Warning 26: unused variable ai_id.
+File "AI.ml", line 364, characters 35-47:
+Warning 26: unused variable cards_played.
+File "AI.ml", line 394, characters 8-19:
+Warning 26: unused variable next_player.
+# Target: whoknows.cmo, tags: { byte, compile, extension:cmo, extension:ml, file:whoknows.cmo, file:whoknows.ml, implem, ocaml, quiet }
+/Users/jimmychen/.opam/4.03.0/bin/ocamlc.opt -c -I /Users/jimmychen/.opam/4.03.0/lib/oUnit -I /Users/jimmychen/.opam/4.03.0/lib/ocaml -o whoknows.cmo whoknows.ml
++ /Users/jimmychen/.opam/4.03.0/bin/ocamlc.opt -c -I /Users/jimmychen/.opam/4.03.0/lib/oUnit -I /Users/jimmychen/.opam/4.03.0/lib/ocaml -o whoknows.cmo whoknows.ml
+File "whoknows.ml", line 385, characters 28-29:
+Error: This expression has type player but an expression was expected of type
+         AI.player
+Command exited with code 2.
+# Compilation unsuccessful.

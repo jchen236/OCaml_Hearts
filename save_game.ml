@@ -185,6 +185,7 @@ let update_existing_json username won score =
   let win_percent = avg_win_percentage wins losses in
   let bs = update_best_score score p.best_score in
   let a_score = update_avg_score score p.avg_score p.wins p.losses in
+  let () = update_leaderboard username score in
   let new_stats = `Assoc [("name", `String username);
   ("wins", `Int wins);("losses", `Int losses);
   ("win_percentage", `Float win_percent); ("best_score", `Int bs);
@@ -193,15 +194,15 @@ let update_existing_json username won score =
 
 (*[update_player_json player_lst winner] takes a list of players and calls
 update_existing_json on each one*)
-let rec update_player_json player_lst winner : unit = 
+let rec update_player_json player_lst winner : unit =
   match player_lst with
   | [] -> unit
-  | p::tl -> 
+  | p::tl ->
     let p_id = p.player_id in
     let win = (p_id = winner) in
     let score = p.total_score in
     update_existing_json p_id win score;
-    update_player_json tl winner 
+    update_player_json tl winner
 
 (*[is_suit s] returns a boolean if the string is a valid suit (C,D,S,H)*)
 let is_suit s =
