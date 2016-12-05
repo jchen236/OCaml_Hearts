@@ -1,4 +1,5 @@
-include whoknows.ml
+open whoknows.ml
+open AI
 
 let run_game () = 
 
@@ -39,4 +40,6 @@ let run_game () =
 
 	done
 
-	print_endline ("Congrats " ^ get_winner player_list ^ "\nYou have won!" ) in ()
+	print_endline ("Congrats " ^ get_winner player_list ^ "\nYou have won!" ) in 
+
+	update_player_json player_list (get_winner player_list)

@@ -1,4 +1,4 @@
-
+open AI
 (*CARD REPRESENTATION*)
 
 (* representation of a card
@@ -385,7 +385,7 @@ let rec exchange_phase (player_lst: player list) (res: (player_id * card list) l
 		let ai_cards= ai_exchange p in
 		exchange_phase tl res @ [ai_cards]
 	else (
-		let () =  print_endline "Exchange for: " + p.player_id + "\n" in
+		let () =  print_endline "Exchange for: " ^ p.player_id ^ "\n" in
 		let tentative_exchange = cards_to_exchange() in
 		if is_valid_exchange p.cards tentative_exchange then
 			let p_exchange = (p.player_id, tentative_exchange) in
@@ -552,5 +552,25 @@ let rec rearrange_player_list (player_lst: player list) (turn_result: (player_id
 	res := !res @ [find_player !counter player_lst]; (counter:= (!counter + 1) mod 4)
 	done;
 	!res
+
+let rec is_winner (player_lst: player list) : bool = 
+	match player_lst with
+	| [] -> false
+	| h::tl ->
+		if h.total_score > 100 then true
+	else is_winner tl
+
+let rec extract_playerid_and_score (player_lst: player list) (res: (player_id * int) list) = 
+	match player_lst with
+	| [] -> res
+	| h::tl ->
+		extract_playerid_and_score tl res @ [(h.player_id, h.total_score)]
+
+let get_winner (player_lst: player list) : player_id =
+
+	let player_id_and_score = extract_playerid_and_score player_lst [] in
+	let sorted_player_id_and_score = List.sort (fun x y -> Pervasives.compare (snd x) (snd y)) player_id_and_score in
+	(fst (List.hd sorted_player_id_and_score))
+
 
 
