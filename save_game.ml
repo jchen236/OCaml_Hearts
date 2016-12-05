@@ -206,6 +206,7 @@ let rec update_player_json player_lst winner : unit =
     update_existing_json p_id win score;
     update_player_json tl winner
 
+
 (*[is_suit s] returns a boolean if the string is a valid suit (C,D,S,H)*)
 let is_suit s =
   match s with

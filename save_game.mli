@@ -19,4 +19,7 @@ val update_existing_json: string -> bool -> int -> unit
 
 (* Prints an individual player's statistics for the given username*)
 val display_player_stats : string -> unit
+
+
+val cards_to_exchange : unit -> int list
 end
