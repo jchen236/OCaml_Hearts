@@ -4,6 +4,9 @@
 (* Prints the top 5 player high scores from the leaderboard *)
 val display_high_score : unit -> unit
 
+(* Updates the leaderboard with the given winner and score*)
+val update_leaderboard: string -> int -> unit
+
 (* Creates a new json file containing the default values for an individual player's statistics *)
 val create_new_json_file : string -> unit
 

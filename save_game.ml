@@ -39,6 +39,59 @@ let rec display_high_score_helper hs = match hs with
 let display_high_score () =
   display_high_score_helper (extract_high_scores ())
 
+(*[find_leaderboard_place score] returns the int of what place the winner is in
+with regards to the old leaderboard
+e.g. return 0 if the player's score is the best score, 4 if fifth best,
+and 5 if the score is higher than the fifth best
+-[leaderboard] is the high score player list of the current leaderboard
+-[score] is the winner's score
+-[index] keeps track of which place to return*)
+let rec find_leaderboard_place leaderboard score index =
+  match leaderboard with
+  | [] -> 5
+  | h::t -> if score < h.score then index
+    else find_leaderboard_place t score (index+1)
+
+(*[take_off_last lst] returns a new list with the last element removed*)
+let take_off_last lst = List.rev (List.tl (List.rev lst))
+
+(*[update_leaderboard_list leaderboard username points] updates the high score
+player list with the new player's name and score*)
+let rec update_leaderboard_list leaderboard username points =
+  match leaderboard with
+  | [] -> []
+  | h::t -> if points < h.score
+    then take_off_last ({name=username;score=points}::leaderboard)
+    else h::(update_leaderboard_list t username points)
+
+let update_leaderboard_json (leaderboard:high_score) =
+  let p1 = List.nth leaderboard 0 in
+  let p2 = List.nth leaderboard 1 in
+  let p3 = List.nth leaderboard 2 in
+  let p4 = List.nth leaderboard 3 in
+  let p5 = List.nth leaderboard 4 in
+  let new_lb = `Assoc [("high_scores",
+    `List
+      [`Assoc [("player", `String p1.name); ("points", `Int p1.score)];
+       `Assoc [("player", `String p2.name); ("points", `Int p2.score)];
+       `Assoc [("player", `String p3.name); ("points", `Int p3.score)];
+       `Assoc [("player", `String p4.name); ("points", `Int p4.score)];
+       `Assoc [("player", `String p5.name); ("points", `Int p5.score)];])] in
+  Yojson.Basic.to_file "high_score.json" new_lb
+
+(*[update_leaderboard winner score] updates the json
+containing the leaderboard scores
+-[winner] is the username of the player who won the game
+-[score] is the winner's score for that game*)
+let update_leaderboard winner score =
+  let leaderboard = extract_high_scores () in
+  let place = find_leaderboard_place leaderboard score 0 in
+  if place = 5 then ()
+  else
+    let new_lb_list = update_leaderboard_list leaderboard winner score in
+    update_leaderboard_json new_lb_list
+
+
 (*[update_player_stats username win]
   will update an individual player's statistics
   including total wins and losses, average win percentage, and best score
@@ -86,7 +139,7 @@ let update_avg_score score avg_score wins losses =
 
 (*[create_new_json_file username] creates a new json file for a new player*)
 let create_new_json_file username =
-  let stats:Yojson.Basic.json = `Assoc [("name", `String username);
+  let stats = `Assoc [("name", `String username);
   ("wins", `Int 0);("losses", `Int 0); ("win_percentage", `Float 0.0);
   ("best_score", `Int 100); ("avg_score", `Float 0.0)] in
   Yojson.Basic.to_file (username ^ ".json") stats
@@ -111,7 +164,7 @@ let rec read_player_stats username =
 
 (*[display_player_stats username] prints the player's statistics
 -[username] is the player's username *)
-let display_player_stats_helper username =
+let display_player_stats username =
   let p = read_player_stats username in
   print_endline ("Name: " ^ p.name);
   print_endline ("Wins: " ^ (string_of_int p.wins));
@@ -132,7 +185,7 @@ let update_existing_json username won score =
   let win_percent = avg_win_percentage wins losses in
   let bs = update_best_score score p.best_score in
   let a_score = update_avg_score score p.avg_score p.wins p.losses in
-  let new_stats:Yojson.Basic.json = `Assoc [("name", `String username);
+  let new_stats = `Assoc [("name", `String username);
   ("wins", `Int wins);("losses", `Int losses);
   ("win_percentage", `Float win_percent); ("best_score", `Int bs);
   ("avg_score", `Float a_score)] in
