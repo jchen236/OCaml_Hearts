@@ -2,6 +2,7 @@
  * for data saving. Utilizies the YoJson module. *)
 
 (* Prints the top 5 player high scores from the leaderboard *)
+module SaveGame : sig
 val display_high_score : unit -> unit
 
 (* Updates the leaderboard with the given winner and score*)
@@ -18,3 +19,4 @@ val update_existing_json: string -> bool -> int -> unit
 
 (* Prints an individual player's statistics for the given username*)
 val display_player_stats : string -> unit
+end

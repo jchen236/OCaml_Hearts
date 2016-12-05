@@ -1,5 +1,7 @@
 open Yojson.Basic.Util
+open Player
 
+module SaveGame = struct
 type hs_player = {name:string;score:int}
 type high_score = hs_player list
 type player_stats = {name:string;wins:int;losses:int;
@@ -196,8 +198,8 @@ let update_existing_json username won score =
 update_existing_json on each one*)
 let rec update_player_json player_lst winner : unit =
   match player_lst with
-  | [] -> unit
-  | p::tl ->
+  | [] -> ()
+  | p::tl -> 
     let p_id = p.player_id in
     let win = (p_id = winner) in
     let score = p.total_score in
@@ -374,6 +376,7 @@ let rec ready_to_play username =
   else if input = "HELP" then  (print_help (); ready_to_play username)
   else ready_to_play username
 
+end
 
 
 

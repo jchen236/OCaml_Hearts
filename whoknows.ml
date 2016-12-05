@@ -1,4 +1,5 @@
 open AI
+open Player
 (*CARD REPRESENTATION*)
 
 (* representation of a card
@@ -9,20 +10,8 @@ open AI
  * 14-26 is Clubs
  * 27-39 is Hearts
  * 40-52 is Spades *)
-
- type card = int
- type hand = card list
- type player_id = string
-
-  type player = {
-    cards : hand;
-    total_score: int;
-    round_score: int;
-    player_id: string;
-    is_AI: bool;
-    position: int;
-  }
-
+type player = AI.player
+ 
  let hearts_broken = ref false
 
 (* Calculates the bounds for the suit of this card. The bounds are inclusive*)
@@ -385,8 +374,8 @@ let rec exchange_phase (player_lst: player list) (res: (player_id * card list) l
 		let ai_cards= ai_exchange p in
 		exchange_phase tl res @ [ai_cards]
 	else (
-		let () =  print_endline "Exchange for: " ^ p.player_id ^ "\n" in
-		let tentative_exchange = cards_to_exchange() in
+		let () =  print_endline ("Exchange for: " ^ p.player_id ^ "\n") in
+		let tentative_exchange = cards_to_exchange () in
 		if is_valid_exchange p.cards tentative_exchange then
 			let p_exchange = (p.player_id, tentative_exchange) in
 			exchange_phase tl res @ [p_exchange]

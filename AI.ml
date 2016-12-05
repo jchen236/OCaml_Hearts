@@ -1,12 +1,20 @@
-
-
+open Player
 (* AI for Hearts Card Game *)
 
   type ai_id = string
 
-  type card = int
-  type hand = card list
-  type player_id = string
+  type card = Player.card
+  type hand = Player.hand
+  type player_id = Player.player_id
+
+  type player = {
+  cards : Player.hand;
+  total_score : Player.total_score;
+  round_score : Player.round_score;
+  player_id : Player.player_id;
+  is_AI : Player.is_AI;
+  position : Player.position;
+}
 
   (* Contains all the hands of the four players and the list of cards that
    * have been played. There will be a 5 length list. Elements 1-4 will be the
@@ -36,16 +44,6 @@
     mutable next_player : string;
     mutable hearts_broken : bool;
   }
-
-    type player = {
-    cards : hand;
-    total_score: int;
-    round_score: int;
-    player_id: string;
-    is_AI: bool;
-    position: int;
-  }
-
 (* ========================================================================== *)
 (* General AI Methods *)
 
