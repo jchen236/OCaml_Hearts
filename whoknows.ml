@@ -133,7 +133,7 @@ let rec distribute_hands (players: Player.player list) (hand_list : Card.card li
 		| [] -> List.rev acc
 		| curr::others ->
 			let new_player = 
-			Player.create_player h.player_id curr h.total_score h.round_score h.is_AI n
+			Player.create_player (Player.get_id h) curr (Player.get_total_score h) (Player.get_round_score h) (Player.get_is_AI h) n
 		in distribute_hands t others (new_player::acc) (n+1)
 	)
 

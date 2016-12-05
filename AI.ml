@@ -1,5 +1,6 @@
-open Player
 open Card
+open Player
+
 
 (* AI for Hearts Card Game *)
 

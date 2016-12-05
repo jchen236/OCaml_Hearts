@@ -200,9 +200,9 @@ let rec update_player_json player_lst winner : unit =
   match player_lst with
   | [] -> ()
   | p::tl -> 
-    let p_id = p.player_id in
+    let p_id = (Player.get_id p) in
     let win = (p_id = winner) in
-    let score = p.total_score in
+    let score = (Player.get_total_score p) in
     update_existing_json p_id win score;
     update_player_json tl winner
 

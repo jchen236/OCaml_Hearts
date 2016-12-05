@@ -3,7 +3,7 @@ include Card
 	type player =
 	{
 		player_id : string;
-		cards : card list;
+		cards : Card.card list;
 		total_score : int;
 		round_score : int;
 		is_AI : bool;
@@ -33,7 +33,7 @@ include Card
 	let set_total_score p total_score = {p with total_score = total_score}
 	let set_round_score p round_score = {p with round_score = round_score}
 	let set_is_AI p is_AI = {p with is_AI = is_AI}
-	let set_position position = {p with position = position}
+	let set_position p position = {p with position = position}
 
 	let create_player id c ts rs is_AI p = 
 	{

@@ -43,7 +43,7 @@ let legal_moves_test = [
 	"First player, HB" >:: (fun _ -> assert_equal [1; 2; 14; 15; 27; 28; 42; 41] (get_legal_moves None [1; 2; 14; 15; 27; 28; 42; 41] (ref true)));
 	"First player, have only hearts but !HB" >:: (fun _ -> assert_equal [27; 28] (get_legal_moves None [27; 28] (ref false)));
 ]
-
+(*
 let player_lst1 =  [
 	 {cards = [22; 23; 24; 25; 26]; total_score = 0; round_score = 0; player_id = "ellie"; is_AI = false; position = 0};
 	 {cards = [1; 2; 3; 4; 5; 6; 7]; total_score = 0; round_score = 0; player_id = "bob"; is_AI = false; position = 1};
@@ -145,7 +145,7 @@ let turn_test = [
 	(* "turn3A" >:: (fun _ -> assert_equal [2; 15; 22; 35] turn_cards3);  *)
 	"HB" >:: (fun _ -> assert_equal true (!hearts_broken));
 ]
-
+*)
 let tests = "test suite" >::: points_turn_test @ legal_moves_test
 
 let _ = run_test_tt_main tests

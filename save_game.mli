@@ -12,7 +12,7 @@ val update_leaderboard: string -> int -> unit
 val create_new_json_file : string -> unit
 
 (* Resets an existing json file to the default values for an individual player's statistics *)
-val reset_json_file : string -> unit
+val reset_existing_json : string -> unit
 
 (* Updates an existing player's stats from the given username and stats from the last game*)
 val update_existing_json: string -> bool -> int -> unit
