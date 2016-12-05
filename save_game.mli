@@ -27,6 +27,8 @@ val get_human_players : unit -> string list
 
 val update_player_json : Player.player list -> Player.player_id -> unit
 
+
+val convert_hand_to_string_list : Card.card list -> string list
 val print_help : unit -> unit
 val cards_to_exchange : unit -> int list
 val convert_string_card_to_int : string -> int

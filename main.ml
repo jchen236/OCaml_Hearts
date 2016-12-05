@@ -1,6 +1,5 @@
 let () =
-  ANSITerminal.(print_string [red]
-    "\n\nWelcome to Hearts<3 !!\n");
+  print_endline ("\n\nWelcome to Hearts<3 !!\n");
   print_endline "Please enter number of human players (int).
 Type HELP at any time to read the instructions,
 QUIT to end the game,

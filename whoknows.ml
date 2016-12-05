@@ -71,7 +71,7 @@ let initialize_human_players acc (player_name: Player.player_id) =
 
 (*Creates a record for a AI *)
 let initialize_ai acc (ai_name: Player.player_id) =
-	let new_ai = Player.init in
+	let new_ai = Player.init_AI in
 	let new_ai_with_name = Player.set_id new_ai ai_name in
 	acc @ [new_ai_with_name]
 
@@ -141,10 +141,10 @@ let rec distribute_hands (players: Player.player list) (hand_list : Card.card li
 let initialize_all_players (player_id_lst: Player.player_id list) (ai_lst: Player.player_id list) : Player.player list =
 	let num_players = List.length player_id_lst in
 	let num_ais = 4 - num_players in
-	let player_id_lst = List.fold_left initialize_human_players [] player_id_lst in
+	let player_lst= List.fold_left initialize_human_players [] player_id_lst in
 	let ais = partial_lst ai_lst num_ais [] in
 	let ai_lst = List.fold_left initialize_ai [] ais in
-	let players_and_ais = player_id_lst@ai_lst in
+	let players_and_ais = player_lst@ai_lst in
 	let shuffled_deck = initialize_deck () in
 	let four_hands = distribute_deck shuffled_deck in
 	distribute_hands players_and_ais four_hands [] 0
@@ -235,6 +235,8 @@ let rec is_valid_exchange (card_lst: Card.card list) (exchange: Card.card list) 
 	| [] -> true
 	| h::tl ->
 		(List.mem h card_lst) && is_valid_exchange card_lst tl 
+let print_card card = 
+	print_endline (" " ^ card)
 
 (*Returns a list of exchanges for the exchange phase*)
 let rec exchange_phase (player_lst: Player.player list) (res: (Player.player_id * Card.card list) list ) : ((Player.player_id * Card.card list) list ) = 
@@ -246,6 +248,8 @@ let rec exchange_phase (player_lst: Player.player list) (res: (Player.player_id 
 		exchange_phase tl res @ [ai_cards]
 	else (
 		let () =  print_endline ("Exchange for: " ^ Player.get_id p  ^ "\n") in
+		let currcards = SaveGame.convert_hand_to_string_list (Player.get_cards p) in
+		let () = List.iter print_card currcards in 
 		let tentative_exchange = SaveGame.cards_to_exchange () in
 		if is_valid_exchange (Player.get_cards p) tentative_exchange then
 			let p_exchange = (Player.get_id p, tentative_exchange) in
@@ -327,7 +331,7 @@ let rec move_repl (player: Player.player) (played_cards: Card.card option array)
 *)
 let play_turn (player_lst: Player.player list) (round_cards: Card.card list) (hearts_broken: bool ref) : (Player.player * Card.card) list =
 	let played_cards = [| None; Some(-1); Some(-1); Some(-1) |] in
-
+	let counter = 0 in
 	let play_move player played_cards =
 		ready_to_play (Player.get_id player);
 
@@ -344,18 +348,26 @@ let play_turn (player_lst: Player.player list) (round_cards: Card.card list) (he
 		move_repl player played_cards hearts_broken
 	in
 
-	let rec helper lst =
+	let rec helper lst played_cards counter=
 		match lst with
 		| [] -> []
 		| (p, c)::t -> (* let move = (if p.is_AI then ___ else play_move p played_cards) in *)
 						let move = play_move p played_cards in
-				  				played_cards.(Player.get_position p) <- Some move;
-				  				let updated_player = {p with cards = (Card.remove_card_from_hand (Player.get_cards p) move)} in
-				  				[(updated_player, move)] @ helper t
+				  				played_cards.(counter) <- Some move;
+				  				let updated_player = Player.set_cards p (Card.remove_card_from_hand (Player.get_cards p) move) in
+								[(updated_player, move)] @ (helper t played_cards (counter+1))
 	in
 
 let tuple_list = List.map (fun player -> (player, -1)) player_lst in
-helper tuple_list
+helper tuple_list played_cards counter
+
+
+
+let rec get_first_tuple lst = 
+	match lst with
+	| [] -> []
+	| h::tl -> 
+		(fst h ) :: get_first_tuple tl
 
 let rec player_card_to_playerid_card (turn_res: (Player.player * Card.card) list) (res: (Player.player_id * Card.card) list ): (Player.player_id * Card.card) list = 
 	match turn_res with
@@ -406,7 +418,7 @@ let rec is_winner (player_lst: Player.player list) : bool =
 	match player_lst with
 	| [] -> false
 	| h::tl ->
-		if (Player.get_total_score h) > 100 then true
+		if (Player.get_total_score h) > 25 then true
 	else is_winner tl
 
 let rec extract_playerid_and_score (player_lst: Player.player list) (res: (Player.player_id * int) list) = 
@@ -420,6 +432,7 @@ let get_winner (player_lst: Player.player list) : Player.player_id =
 	let player_id_and_score = extract_playerid_and_score player_lst [] in
 	let sorted_player_id_and_score = List.sort (fun x y -> Pervasives.compare (snd x) (snd y)) player_id_and_score in
 	(fst (List.hd sorted_player_id_and_score))
+
 
 
 

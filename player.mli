@@ -12,7 +12,7 @@ type player =
 
 type player_id = string
 val init : player
-
+val init_AI : player
 val get_id : player -> string
 val get_cards : player -> Card.card list
 val get_total_score : player -> int

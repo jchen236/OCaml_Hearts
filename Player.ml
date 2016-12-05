@@ -14,9 +14,18 @@ include Card
 	{
 		player_id = "PLAYER";
 		cards = [];
-		total_score = -1;
-		round_score = -1;
+		total_score = 0;
+		round_score = 0;
 		is_AI = false;
+		position = -1; 
+	}
+	let init_AI = 
+		{
+		player_id = "AI";
+		cards = [];
+		total_score = 0;
+		round_score = 0;
+		is_AI = true;
 		position = -1; 
 	}
 
