@@ -1,8 +1,8 @@
 open Card
 open Player
 open AI
-open Save_game
-open Whoknows
+open IOops
+open Game_logic
 
 
 
@@ -50,6 +50,7 @@ let rec run_game () =
 			round_cards := !round_cards @ !turn_cards
 		done;
 		let () = print_endline ("Round is over") in
+		let () = display_player_scores !player_list in 
 		let shuffled_deck = initialize_deck () in
 		let four_hands = distribute_deck shuffled_deck in
 		let fresh_players = distribute_hands !player_list four_hands [] 0 in
@@ -57,13 +58,11 @@ let rec run_game () =
 
 	done;
 
-	let () = print_endline ("Congrats " ^ (get_winner !player_list)
-																												^ "\nYou have won!" ) in
+	let () = print_endline ("Congrats " ^ (get_winner !player_list) ^ "\nYou have won!" ) in
 	let () = print_endline "\nType YES to play another game, NO to end" in
 	let replay = String.uppercase_ascii (String.trim (read_line ())) in
 	(if replay = "YES"
-		then (SaveGame.update_player_json !player_list (get_winner !player_list);
-																																		run_game ())
+		then (SaveGame.update_player_json !player_list (get_winner !player_list);run_game ())
 else SaveGame.update_player_json !player_list (get_winner !player_list)))
 	| "HELP" -> (SaveGame.print_help (); run_game())
 	| "QUIT" -> print_endline "Quitting Game..."

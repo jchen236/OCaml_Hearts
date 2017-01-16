@@ -1,18 +1,1 @@
-{
-  "high_scores": [{
-    "player": "Name1",
-    "points":0
-  }, {
-    "player": "Name2",
-    "points":10
-  }, {
-    "player": "Name3",
-    "points": 20
-  }, {
-    "player": "Name4",
-    "points": 30
-  }, {
-    "player": "Name5",
-    "points": 40
-  }]
-}
+{"high_scores":[{"player":"DEFAULT","points":100},{"player":"DEFAULT","points":100},{"player":"DEFAULT","points":100},{"player":"DEFAULT","points":100},{"player":"DEFAULT","points":100}]}
